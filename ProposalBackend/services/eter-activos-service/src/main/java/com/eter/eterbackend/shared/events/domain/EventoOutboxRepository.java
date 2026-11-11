@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public interface EventoOutboxRepository {
 
-	/** Devuelve false si el dedupKey ya existia, es decir si el evento ya se registro. */
+	/** Devuelve false si el evento ya estaba registrado. */
 	boolean guardarSiNoExiste(EventoOutbox evento);
 
 	List<EventoOutbox> buscarPendientes(int limite);

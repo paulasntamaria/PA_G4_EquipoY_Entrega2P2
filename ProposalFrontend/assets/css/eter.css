@@ -1,17 +1,4 @@
-/*
- * ETER · sistema de diseño
- *
- * Oscuro por defecto, con tema claro. Violeta como único acento, tarjetas
- * sobrias y estados en chips. tema.js fija data-tema en <html> antes de pintar.
- *
- * Reglas para las páginas:
- *   - Todo color sale de un token de :root. Nada de hex sueltos en las páginas.
- *   - Tipos: --f-titulo (Fjalla One, un solo peso) para títulos y cifras;
- *     --f-texto (Inter) para leer y para etiquetas; --f-codigo (JetBrains Mono)
- *     para placas, NIT, documentos, fechas en tablas e IDs.
- *   - --f-titulo siempre con peso 400: la fuente no tiene otros.
- *   - Estilos propios de una página van en assets/css/paginas/<pagina>.css.
- */
+/* ETER · sistema de diseño. Colores solo desde los tokens de :root. */
 
 :root {
   /* Superficies y texto */
@@ -56,14 +43,14 @@
   --f-codigo: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
 
   /* Escala tipográfica */
-  --t-xxs: 0.6875rem;  /* 11 */
-  --t-xs: 0.75rem;     /* 12 */
-  --t-sm: 0.8125rem;   /* 13 */
-  --t-md: 0.875rem;    /* 14 */
-  --t-lg: 1.0625rem;   /* 17 */
-  --t-xl: 1.375rem;    /* 22 */
-  --t-2xl: 1.875rem;   /* 30 */
-  --t-3xl: 2.25rem;    /* 36 */
+  --t-xxs: 0.6875rem;
+  --t-xs: 0.75rem;
+  --t-sm: 0.8125rem;
+  --t-md: 0.875rem;
+  --t-lg: 1.0625rem;
+  --t-xl: 1.375rem;
+  --t-2xl: 1.875rem;
+  --t-3xl: 2.25rem;
 
   /* Espacio, radios, sombras */
   --e-1: 4px; --e-2: 8px; --e-3: 12px; --e-4: 16px; --e-5: 24px; --e-6: 32px; --e-7: 48px;
@@ -116,7 +103,7 @@
   color-scheme: dark;
 }
 
-/* ── Base ─────────────────────────────────────────────────────────────────── */
+/* Base */
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -144,7 +131,7 @@ img, svg { max-width: 100%; }
 .mono { font-family: var(--f-codigo); font-size: 0.92em; }
 .icono { width: 16px; height: 16px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 
-/* ── Armazón: menú lateral, barra superior y contenido ────────────────────── */
+/* Armazón */
 .app {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -234,7 +221,7 @@ img, svg { max-width: 100%; }
   font: 400 var(--t-sm)/1 var(--f-titulo); letter-spacing: 0.02em;
 }
 
-/* Menú colapsado: solo íconos (únicamente en escritorio) */
+/* Menú colapsado (escritorio) */
 @media (min-width: 901px) {
   :root[data-menu="colapsado"] .riel { width: var(--ancho-riel-min); }
   :root[data-menu="colapsado"] .marca { justify-content: center; padding-inline: 0; }
@@ -329,11 +316,11 @@ img, svg { max-width: 100%; }
   padding: 28px 32px 56px;
   animation: entra-pagina 0.25s ease-out backwards;
 }
-/* Sin esto, una tabla ancha dentro de un hijo de rejilla ensancha la columna (y la página en móvil). */
+/* Evita que una tabla ancha ensanche la rejilla. */
 .main > *, .columnas > *, .seccion > *, .pila > * { min-width: 0; }
 @keyframes entra-pagina { from { opacity: 0; transform: translateY(8px); } }
 
-/* Móvil: el menú es un cajón que abre la hamburguesa */
+/* Móvil: menú como cajón */
 @media (max-width: 900px) {
   .app { grid-template-columns: minmax(0, 1fr); }
   .riel {
@@ -354,7 +341,7 @@ img, svg { max-width: 100%; }
   .superior-derecha { gap: 4px; margin-left: auto; }
 }
 
-/* ── Cabecera de página ───────────────────────────────────────────────────── */
+/* Cabecera de página */
 .cabecera { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 16px; }
 .cabecera-icono {
   flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px;
@@ -375,7 +362,7 @@ img, svg { max-width: 100%; }
 /* Título de sección */
 .seccion { display: grid; gap: var(--e-3); }
 .seccion-titulo { font: 400 1rem/1.25 var(--f-titulo); color: var(--tinta); }
-/* Tabla en tarjeta: título, filtros y tabla en una sola pieza. */
+/* Tabla en tarjeta */
 .seccion--tarjeta {
   --tarjeta-pad: 20px;
   gap: 14px; padding: 18px var(--tarjeta-pad) 0; overflow: hidden;
@@ -388,7 +375,7 @@ img, svg { max-width: 100%; }
 .seccion--tarjeta .paginador { margin: -14px calc(-1 * var(--tarjeta-pad)) 0; }
 @media (max-width: 560px) { .seccion--tarjeta { --tarjeta-pad: 14px; } }
 
-/* ── Botones ──────────────────────────────────────────────────────────────── */
+/* Botones */
 .boton {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   min-height: 38px; padding: 0 16px; border-radius: var(--r-1);
@@ -400,7 +387,7 @@ img, svg { max-width: 100%; }
 .boton:not(:disabled):hover { background: var(--primario-tenue); border-color: var(--primario-borde); }
 .boton:not(:disabled):active { transform: scale(0.98); }
 .boton:disabled, .boton[aria-disabled="true"], .boton[aria-busy="true"] { opacity: 0.55; cursor: default; pointer-events: none; }
-/* Deshabilitado por permisos (ui.soloAdmin): deja ver el title con el motivo. */
+/* Deshabilitado por permisos */
 .boton:disabled[title], .boton[aria-disabled="true"][title] { pointer-events: auto; cursor: not-allowed; }
 .boton--primario { border-color: transparent; background: var(--degradado); color: var(--sobre-primario); }
 .boton--primario:not(:disabled):hover { border-color: transparent; background: var(--degradado-hover); box-shadow: 0 4px 20px rgb(92 62 225 / 0.35); }
@@ -411,7 +398,7 @@ img, svg { max-width: 100%; }
 .boton--sm { min-height: 32px; padding: 0 12px; border-radius: 8px; font-size: var(--t-xs); }
 .boton--ancho { width: 100%; }
 
-/* ── Formularios ──────────────────────────────────────────────────────────── */
+/* Formularios */
 .campo { display: grid; gap: 6px; min-width: 0; align-content: start; }
 .etiqueta, .campo > label { font: 500 var(--t-xs)/1.3 var(--f-texto); color: var(--tinta-2); }
 .entrada, .selector, .area {
@@ -451,7 +438,7 @@ img, svg { max-width: 100%; }
 .buscador .icono { position: absolute; left: 12px; top: 50%; translate: 0 -50%; color: var(--tinta-3); pointer-events: none; }
 .buscador .entrada { padding-left: 36px; }
 
-/* Segmentos (filtro de una sola opción): chips */
+/* Segmentos */
 .segmentos { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .segmentos button {
   all: unset; cursor: pointer; padding: 6px 14px; border-radius: 999px;
@@ -476,7 +463,7 @@ img, svg { max-width: 100%; }
 .pestanas [aria-selected="true"] { color: var(--primario); border-bottom-color: var(--primario); }
 .pestanas button:focus-visible, .pestanas a:focus-visible { outline: 2px solid var(--primario); outline-offset: -2px; }
 
-/* ── Hojas (tarjetas) ─────────────────────────────────────────────────────── */
+/* Hojas (tarjetas) */
 .hoja { min-width: 0; background: var(--hoja); border: 1px solid var(--regla); border-radius: var(--r-2); box-shadow: var(--sombra-tarjeta); }
 .hoja-cabeza {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
@@ -493,7 +480,7 @@ img, svg { max-width: 100%; }
 .ficha dt { font: 500 var(--t-xs)/1.3 var(--f-texto); color: var(--tinta-3); }
 .ficha dd { margin: 0; font-size: var(--t-sm); font-weight: 500; overflow-wrap: anywhere; }
 
-/* ── Tablas ───────────────────────────────────────────────────────────────── */
+/* Tablas */
 .tabla-marco { position: relative; overflow-x: auto; background: var(--hoja); border: 1px solid var(--regla); border-radius: var(--r-2); box-shadow: var(--sombra-tarjeta); }
 .tabla { width: 100%; border-collapse: collapse; font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
 .tabla th {
@@ -547,7 +534,7 @@ img, svg { max-width: 100%; }
 .pagina-boton:disabled { opacity: 0.4; cursor: default; }
 .paginador-puntos { padding: 0 4px; }
 
-/* ── Códigos, estados y sellos ────────────────────────────────────────────── */
+/* Códigos, estados y sellos */
 .codigo {
   display: inline-block; padding: 3px 8px; border-radius: 6px;
   background: var(--primario-tenue); color: var(--primario);
@@ -566,7 +553,7 @@ a.codigo:hover { background: var(--primario-medio); }
 .estado--peligro { background: var(--peligro-fondo); color: var(--peligro); }
 .estado--info { background: var(--info-fondo); color: var(--info); }
 
-/* Estado destacado de un préstamo, para detalles (no para filas de tabla) */
+/* Estado destacado de un préstamo */
 .sello {
   display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 999px;
   border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
@@ -577,7 +564,7 @@ a.codigo:hover { background: var(--primario-medio); }
 .sello--info { color: var(--info); }
 .sello--neutro { color: var(--neutro); }
 
-/* Etiqueta de inventario: es un objeto físico, se ve igual en ambos temas. */
+/* Etiqueta de inventario: igual en ambos temas */
 .placa {
   display: inline-grid; gap: 7px;
   width: min(100%, 300px); padding: 12px 16px 10px; border-radius: 12px;
@@ -591,7 +578,7 @@ a.codigo:hover { background: var(--primario-medio); }
 .placa--sm .placa-codigo { font-size: 0.95rem; }
 .placa--sm .placa-barras { height: 18px; }
 
-/* ── Cifras ───────────────────────────────────────────────────────────────── */
+/* Cifras */
 .cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
 .cifra {
   display: grid; align-content: start; gap: 4px; padding: 16px 20px;
@@ -611,7 +598,7 @@ a.codigo:hover { background: var(--primario-medio); }
 .leyenda span { display: inline-flex; align-items: center; gap: 6px; }
 .leyenda i { width: 10px; height: 10px; border-radius: 50%; }
 
-/* ── Cronología (movimientos, historial) ──────────────────────────────────── */
+/* Cronología */
 .cronologia { list-style: none; margin: 0; padding: 0; display: grid; }
 .cronologia li { display: grid; grid-template-columns: 112px 14px minmax(0, 1fr); gap: 12px; }
 .cronologia time { padding: 12px 0; font: 500 var(--t-xxs)/1.4 var(--f-codigo); color: var(--tinta-3); text-align: right; }
@@ -626,7 +613,7 @@ a.codigo:hover { background: var(--primario-medio); }
 .cronologia .texto { padding: 10px 0; border-bottom: 1px solid var(--regla); }
 .cronologia li:last-child .texto { border-bottom: 0; }
 
-/* ── Avisos, vacíos y carga ───────────────────────────────────────────────── */
+/* Avisos, vacíos y carga */
 .alerta {
   display: grid; gap: 3px; padding: 12px 14px; border-radius: var(--r-1);
   border: 1px solid color-mix(in srgb, var(--peligro) 35%, transparent);
@@ -656,7 +643,7 @@ a.codigo:hover { background: var(--primario-medio); }
 }
 @keyframes brillo { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-/* ── Diálogos ─────────────────────────────────────────────────────────────── */
+/* Diálogos */
 .dialogo {
   width: min(580px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
   padding: 0; border: 1px solid var(--regla-2); border-radius: var(--r-2);
@@ -669,7 +656,7 @@ a.codigo:hover { background: var(--primario-medio); }
 .dialogo-cuerpo { display: grid; gap: 16px; padding: 18px 22px; }
 .dialogo-pie { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 14px 22px 18px; border-top: 1px solid var(--regla); }
 
-/* ── Notificaciones flotantes ─────────────────────────────────────────────── */
+/* Notificaciones flotantes */
 .toasts {
   position: fixed; z-index: 70; right: 18px; bottom: 18px;
   display: grid; gap: 8px; width: min(380px, calc(100vw - 36px));
@@ -686,7 +673,7 @@ a.codigo:hover { background: var(--primario-medio); }
 .toast--aviso .icono { color: var(--aviso); }
 @keyframes entra { from { opacity: 0; transform: translateY(6px); } }
 
-/* ── Utilidades de composición ────────────────────────────────────────────── */
+/* Utilidades */
 .pila { display: grid; gap: var(--e-4); align-content: start; min-width: 0; }
 .fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-3); }
 .entre { justify-content: space-between; }

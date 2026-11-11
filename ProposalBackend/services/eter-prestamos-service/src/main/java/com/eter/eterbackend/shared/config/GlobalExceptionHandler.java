@@ -12,7 +12,7 @@ import com.eter.eterbackend.activos.domain.exception.PrestamoNoVigenteException;
 import com.eter.eterbackend.activos.domain.exception.PrestamoVigenteYaExisteException;
 import com.eter.eterbackend.shared.activos.ServicioExternoNoDisponibleException;
 
-/** Errores propios de prestamos. Los comunes (400, 401, 403, 409, 500) vienen de la base. */
+/** Errores propios de prestamos; los comunes vienen de ManejadorErroresBase. */
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ManejadorErroresBase {
 
@@ -28,7 +28,7 @@ public class GlobalExceptionHandler extends ManejadorErroresBase {
 
 	@ExceptionHandler(DatoInvalidoException.class)
 	ResponseEntity<Object> datoInvalido(DatoInvalidoException e) {
-		// Regla de dominio: su mensaje esta escrito para el usuario y se devuelve tal cual.
+		// Mensaje de dominio: se devuelve tal cual.
 		return responder(problema(HttpStatus.BAD_REQUEST, SOLICITUD_INVALIDA, e.getMessage()));
 	}
 

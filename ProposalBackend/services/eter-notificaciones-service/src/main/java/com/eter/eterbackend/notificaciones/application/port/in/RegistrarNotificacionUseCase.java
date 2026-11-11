@@ -1,6 +1,6 @@
 package com.eter.eterbackend.notificaciones.application.port.in;
 
-/** Lo invoca el consumidor de Kafka cuando llega un evento del topico. */
+/** Lo invoca el consumidor de Kafka. */
 public interface RegistrarNotificacionUseCase {
 
 	record Command(

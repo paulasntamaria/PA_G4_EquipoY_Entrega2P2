@@ -1,10 +1,4 @@
-/*
- * ETER · Bandeja de notificaciones del destinatario del JWT.
- *
- * Lista paginada (api.notificaciones) y suscripción en vivo
- * (api.suscribirNotificaciones): el gateway revisa notificaciones-service
- * cada 5 s y empuja por WebSocket solo las nuevas.
- */
+// Bandeja de notificaciones con suscripción en vivo.
 (function () {
   'use strict';
   const { ui, api, sesion } = ETER;
@@ -54,7 +48,7 @@
     nuevasFuera: 0,
   };
 
-  // ── Pintado ───────────────────────────────────────────────────────────────
+  // Pintado
   const item = (n, { nueva = false } = {}) => html`
     <li class="notif${n.leida ? ' notif--leida' : ''}${nueva ? ' notif--nueva' : ''}" data-id="${n.idNotificacion}" tabindex="-1">
       <span class="notif-marca" aria-hidden="true"></span>
@@ -130,7 +124,7 @@
     lista.innerHTML = html`${est.items.map((n) => item(n))}`;
   }
 
-  // ── Carga ─────────────────────────────────────────────────────────────────
+  // Carga
   async function cargar({ silencioso = false } = {}) {
     const mia = ++est.peticion;
     est.cargando = true;
@@ -143,7 +137,7 @@
     try {
       const r = await api.notificaciones({ page: est.page, size: est.size, soloNoLeidas: est.filtro === 'sin-leer' });
       if (mia !== est.peticion) return;
-      // Si la página quedó fuera de rango (p. ej. al marcar leídas), vuelve a la última.
+      // Página fuera de rango: vuelve a la última.
       if (!r.items.length && est.page > 0 && r.totalElements > 0) {
         est.page = Math.max(0, Math.ceil(r.totalElements / est.size) - 1);
         est.cargando = false;
@@ -172,7 +166,7 @@
     }
   }
 
-  // ── En vivo ───────────────────────────────────────────────────────────────
+  // En vivo
   function recibir(n) {
     if (!n || !n.idNotificacion) return;
     if (est.cargando) { est.cola.push(n); return; }
@@ -238,7 +232,7 @@
     if (ev.persisted) { suscribir(); cargar({ silencioso: true }); }
   });
 
-  // ── Acciones ──────────────────────────────────────────────────────────────
+  // Acciones
   $('segmentos').addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-filtro]');
     if (!b || b.dataset.filtro === est.filtro) return;
@@ -312,14 +306,12 @@
     }
   });
 
-  // Los tiempos relativos envejecen: se recalculan cada 30 s.
+  // Recalcula los tiempos relativos cada 30 s.
   setInterval(() => {
     document.querySelectorAll('time[data-relativa]').forEach((t) => { t.textContent = ui.fmt.relativa(t.getAttribute('datetime')); });
   }, 30000);
 
-  // ── Arranque ──────────────────────────────────────────────────────────────
-  // Primero la suscripción: lo que llegue mientras carga la lista se encola y
-  // se descarta si ya vino en la página.
+  // Arranque: primero la suscripción para no perder avisos.
   suscribir();
   cargar();
 })();

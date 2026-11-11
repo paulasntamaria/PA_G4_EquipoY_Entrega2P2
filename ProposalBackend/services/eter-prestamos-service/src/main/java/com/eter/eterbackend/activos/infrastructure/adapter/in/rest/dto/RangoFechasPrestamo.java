@@ -9,11 +9,7 @@ import java.lang.annotation.Target;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
-/**
- * Validacion cruzada de la peticion de prestamo: fechaDevolucionPactada debe ser
- * posterior a fechaSalida. Se revisa en la entrada HTTP para responder 400 antes
- * de llamar a activos-service; el dominio (PrestamoTemporal) repite la regla.
- */
+/** fechaDevolucionPactada debe ser posterior a fechaSalida. */
 @Documented
 @Constraint(validatedBy = RangoFechasPrestamoValidator.class)
 @Target(ElementType.TYPE)

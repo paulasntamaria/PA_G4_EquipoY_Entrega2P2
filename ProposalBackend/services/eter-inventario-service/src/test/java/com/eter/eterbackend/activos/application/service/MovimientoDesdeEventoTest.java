@@ -23,10 +23,6 @@ import com.eter.eterbackend.activos.domain.model.TipoMovimiento;
 import com.eter.eterbackend.activos.domain.repository.MovimientoInventarioRepository;
 import com.eter.eterbackend.shared.activos.ActivoExistencePort;
 
-/**
- * Segunda barrera de idempotencia: aunque Redis no este, el mismo evento no
- * produce dos movimientos porque se guarda con idempotency_key = "evt:" + eventId.
- */
 @DisplayName("MovimientoInventarioService.registrar (movimiento desde evento)")
 class MovimientoDesdeEventoTest {
 

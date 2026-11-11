@@ -21,14 +21,7 @@ import com.eter.eterbackend.activos.domain.repository.PrestamoTemporalRepository
 import com.eter.eterbackend.shared.events.domain.EventoOutbox;
 import com.eter.eterbackend.shared.events.domain.EventoOutboxRepository;
 
-/**
- * Casos de uso del prestamo temporal.
- *
- * Lo importante de esta clase es el @Transactional de crear, registrarDevolucion
- * y generarAvisos: el cambio de datos y la fila del Outbox se guardan juntos o no
- * se guarda ninguno. Ese es el patron Transactional Outbox y es lo que evita
- * que la base de datos y Kafka queden contando historias distintas.
- */
+/** Casos de uso del prestamo; datos y evento del Outbox en la misma transaccion. */
 public class PrestamoTemporalService implements
 		CrearPrestamoTemporalUseCase,
 		ListarPrestamosUseCase,
@@ -58,9 +51,7 @@ public class PrestamoTemporalService implements
 							.formatted(command.placaInventario(), command.nitUniv()));
 		}
 
-		// Idempotencia del POST: si el cliente reintenta, no se crea un segundo
-		// prestamo del mismo activo. Si dos peticiones pasan este chequeo a la vez,
-		// el indice uq_prestamo_vigente_por_activo rechaza la segunda (409).
+		// Un solo prestamo vigente por activo (el indice unico cubre la carrera).
 		if (prestamoTemporalRepository.existeVigente(command.nitUniv(), command.placaInventario())) {
 			throw new PrestamoVigenteYaExisteException(
 					"El activo %s ya tiene un préstamo vigente en la universidad %s."
@@ -73,8 +64,7 @@ public class PrestamoTemporalService implements
 
 		PrestamoTemporal guardado = prestamoTemporalRepository.save(prestamo);
 
-		// Misma transaccion que el INSERT: inventario lo consume para registrar el
-		// movimiento PRESTAMO en el kardex y notificaciones avisa al custodio.
+		// Misma transaccion que el INSERT; lo consumen inventario y notificaciones.
 		eventoOutboxRepository.guardarSiNoExiste(EventoOutbox.nuevo(
 				"PRESTAMO_CREADO:" + guardado.idPrestamo(),
 				guardado.nitUniv(), guardado.placaInventario(),
@@ -98,14 +88,13 @@ public class PrestamoTemporalService implements
 				.orElseThrow(() -> new PrestamoNoEncontradoException(
 						"No existe el préstamo %s.".formatted(command.idPrestamo())));
 
-		// Un prestamo de otra universidad se trata como inexistente (404), para no
-		// revelar que existe. Mismo criterio que usa notificaciones.
+		// Otra universidad: 404 para no revelar que existe.
 		if (!prestamo.nitUniv().equals(command.nitUniv())) {
 			throw new PrestamoNoEncontradoException(
 					"No existe el préstamo %s.".formatted(command.idPrestamo()));
 		}
 
-		// Regla del contrato: responder 409 si ya fue devuelto o cancelado.
+		// 409 si ya fue devuelto o cancelado.
 		if (!prestamo.estaVigente()) {
 			throw new PrestamoNoVigenteException(
 					"El préstamo %s ya está en estado %s."
@@ -132,8 +121,7 @@ public class PrestamoTemporalService implements
 		int nuevos = 0;
 
 		for (PrestamoTemporal prestamo : vencidos) {
-			// El dedupKey lleva el id del prestamo, asi que aunque el vigia corra
-			// cada minuto el evento se registra una sola vez.
+			// El dedupKey evita repetir el aviso en cada vuelta del vigia.
 			boolean registrado = eventoOutboxRepository.guardarSiNoExiste(EventoOutbox.nuevo(
 					"PRESTAMO_VENCIDO:" + prestamo.idPrestamo(),
 					prestamo.nitUniv(), prestamo.placaInventario(),
@@ -146,12 +134,7 @@ public class PrestamoTemporalService implements
 		return nuevos;
 	}
 
-	/**
-	 * Se arma el JSON a mano para no meter Jackson en la capa de aplicacion.
-	 * destinatarioEmail se deriva del documento del custodio: en el sistema real
-	 * sale de empleado.correo_institucional, pero ese contexto (RRHH) no hace
-	 * parte de este microservicio.
-	 */
+	/** JSON a mano para no meter Jackson en la capa de aplicacion. */
 	private String payloadPrestamo(PrestamoTemporal prestamo, String tipo) {
 		return """
 				{"tipo":"%s","idPrestamo":"%s","nitUniv":"%s","placaInventario":"%s",\

@@ -25,11 +25,6 @@ import com.eter.eterbackend.activos.application.port.in.RegistrarMovimientoDesde
 import com.eter.eterbackend.activos.domain.model.TipoMovimiento;
 import com.eter.eterbackend.shared.idempotencia.IdempotenciaEventos;
 
-/**
- * Pruebas del consumidor de inventario: cada tipo de evento se traduce al
- * movimiento correcto del kardex, los duplicados no generan un segundo
- * movimiento y los mensajes invalidos se rechazan.
- */
 @DisplayName("InventarioEventConsumer (consumidor Kafka)")
 class InventarioEventConsumerTest {
 

@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-/** Notificacion in-app. La crea el consumidor de Kafka, nunca el usuario. */
+/** Notificacion in-app; solo la crea el consumidor de Kafka. */
 public record Notificacion(
 		UUID idNotificacion,
 		UUID eventId,

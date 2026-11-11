@@ -6,7 +6,6 @@ export const config = {
     env.ETER_JWT_SECRET ??
     'eter-jwt-secret-development-only-CHANGE-IN-PRODUCTION-9f4a8c7e',
   timeoutMs: Number(env.ETER_DOWNSTREAM_TIMEOUT_MS ?? 5000),
-  // Frecuencia con la que la suscripcion revisa notificaciones nuevas.
   pollNotificacionesMs: Number(env.ETER_POLL_NOTIFICACIONES_MS ?? 5000),
   servicios: {
     activos: env.ETER_ACTIVOS_BASE_URL ?? 'http://localhost:8087',

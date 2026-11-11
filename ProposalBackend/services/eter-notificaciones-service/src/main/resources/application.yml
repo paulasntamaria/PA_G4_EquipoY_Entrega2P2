@@ -27,7 +27,7 @@ spring:
     redis:
       host: "${ETER_REDIS_HOST:localhost}"
       port: "${ETER_REDIS_PORT:6379}"
-      # Si Redis no responde rapido, el consumidor sigue y la base frena duplicados.
+      # Si Redis tarda, la base frena los duplicados.
       timeout: 2s
       connect-timeout: 2s
   kafka:
@@ -44,14 +44,13 @@ eter:
   kafka:
     topic-prestamos: "${ETER_KAFKA_TOPIC_PRESTAMOS:eter.prestamos.eventos.v1}"
   idempotencia:
-    # Clave eter:idem:{grupo}:{eventId}. PROCESANDO dura poco (si la instancia
-    # muere a mitad, otra puede tomar el evento); PROCESADO dura 7 dias.
+    # PROCESANDO dura poco por si la instancia cae; PROCESADO, 7 dias.
     ttl-procesando: PT5M
     ttl-procesado: P7D
 
 management:
   health:
-    # Redis caido no debe marcar el servicio como DOWN: hay respaldo en PostgreSQL.
+    # Redis caido no marca el servicio como DOWN.
     redis:
       enabled: false
 

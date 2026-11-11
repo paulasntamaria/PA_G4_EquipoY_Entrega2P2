@@ -11,10 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-/**
- * Pruebas del dominio de activos fijos. No levantan Spring ni base de datos:
- * validan las reglas que el record protege en su constructor compacto.
- */
 @DisplayName("ActivoFijo (dominio)")
 class ActivoFijoTest {
 

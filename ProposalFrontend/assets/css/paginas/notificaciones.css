@@ -1,6 +1,6 @@
-/* ETER · Bandeja de notificaciones. Solo tokens de eter.css. */
+/* Bandeja de notificaciones */
 
-/* ── Título con el indicador de conexión ──────────────────────────────────── */
+/* Título e indicador de conexión */
 .titulo-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
 
 .en-vivo {
@@ -25,11 +25,11 @@
 }
 @keyframes parpadeo { 50% { opacity: 0.25; } }
 
-/* ── Barra: segmentos y nota de la conexión ───────────────────────────────── */
+/* Barra */
 .barra-bandeja { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; }
 .vivo-nota { font-size: var(--t-xs); color: var(--tinta-3); max-width: 60ch; }
 
-/* ── Bandeja ──────────────────────────────────────────────────────────────── */
+/* Bandeja */
 .bandeja-zona { display: grid; gap: var(--e-3); min-width: 0; }
 .bandeja {
   position: relative; list-style: none; margin: 0; padding: 0;
@@ -46,7 +46,7 @@
 .notif:focus { outline: none; }
 .notif:focus-visible { outline: 2px solid var(--primario); outline-offset: -2px; }
 
-/* Marca al margen: círculo lleno = sin leer, hueco = leída */
+/* Sin leer: círculo lleno; leída: hueco */
 .notif-marca { width: 9px; height: 9px; margin-top: 5px; border-radius: 50%; background: var(--primario); }
 
 .notif-cuerpo { display: grid; gap: 4px; min-width: 0; }
@@ -66,27 +66,27 @@
 .notif-acciones { align-self: center; }
 .notif-acciones:empty { display: none; }
 
-/* Leídas: más tenues, sin perder lo que dicen */
+/* Leídas */
 .notif--leida { background: color-mix(in srgb, var(--hoja) 45%, var(--papel)); }
 .notif--leida .notif-marca { background: transparent; box-shadow: inset 0 0 0 1.5px var(--regla-2); }
 .notif--leida .notif-titulo { color: var(--tinta-2); }
 .notif--leida .notif-mensaje { color: var(--tinta-2); }
 .notif--leida .estado { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent); }
 
-/* Recién llegada por la suscripción: resaltado breve */
+/* Recién llegada */
 .notif--nueva { background: color-mix(in srgb, var(--primario-tenue) 85%, var(--hoja)); transition: none; }
 
 .notif--cargando { grid-template-columns: 10px minmax(0, 1fr); }
 .notif--cargando .notif-cuerpo { gap: 10px; }
 
-/* ── Paginación ───────────────────────────────────────────────────────────── */
+/* Paginación */
 .paginacion { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
 .paginacion-rango { font: 500 var(--t-xs)/1.2 var(--f-texto); font-variant-numeric: tabular-nums; color: var(--tinta-3); }
 .paginacion-botones { display: flex; gap: 8px; }
 
 #nuevas-arriba .alerta span { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 
-/* ── Nota al pie ──────────────────────────────────────────────────────────── */
+/* Nota al pie */
 .nota-origen {
   max-width: 96ch;
   font-size: var(--t-xs); line-height: 1.6; color: var(--tinta-3);

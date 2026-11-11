@@ -22,10 +22,6 @@ import org.mockito.ArgumentCaptor;
 import com.eter.eterbackend.notificaciones.application.port.in.RegistrarNotificacionUseCase;
 import com.eter.eterbackend.shared.idempotencia.IdempotenciaEventos;
 
-/**
- * Pruebas del consumidor de notificaciones: traduccion del evento, descarte
- * de duplicados y rechazo de mensajes invalidos (que el error handler manda al DLT).
- */
 @DisplayName("NotificacionEventConsumer (consumidor Kafka)")
 class NotificacionEventConsumerTest {
 

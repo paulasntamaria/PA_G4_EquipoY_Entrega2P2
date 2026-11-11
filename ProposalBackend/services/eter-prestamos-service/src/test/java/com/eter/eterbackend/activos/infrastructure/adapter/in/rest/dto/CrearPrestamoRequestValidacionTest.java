@@ -16,10 +16,6 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 
-/**
- * Validacion cruzada de fechas en la peticion de prestamo (Bean Validation),
- * sin levantar Spring.
- */
 @DisplayName("CrearPrestamoRequest (validacion cruzada de fechas)")
 class CrearPrestamoRequestValidacionTest {
 

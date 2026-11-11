@@ -20,17 +20,7 @@ import org.springframework.security.web.firewall.RequestRejectedHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * API stateless protegida por JWT, tal como declara el contrato OpenAPI.
- * Swagger y el health quedan abiertos para poder revisarlos sin token.
- *
- * Autorizacion en dos niveles:
- *  1. Por rol: si eter.security.roles-escritura tiene roles, solo ellos pueden
- *     usar POST/PUT/PATCH/DELETE; cualquier usuario autenticado puede leer (GET).
- *     Si la lista esta vacia (notificaciones), basta con estar autenticado.
- *  2. Por universidad (tenant): verificarTenant() impide que un usuario lea o
- *     escriba datos de una universidad distinta a la de su token.
- */
+/** Seguridad JWT: escritura por rol y aislamiento por universidad. */
 @Configuration
 public class SecurityConfig {
 
@@ -58,7 +48,7 @@ public class SecurityConfig {
 						auth.anyRequest().hasAnyRole(rolesEscritura.toArray(String[]::new));
 					}
 				})
-				// 401 y 403 salen con el mismo formato ProblemDetail que el resto de errores.
+				// 401 y 403 en formato ProblemDetail.
 				.exceptionHandling(e -> e
 						.authenticationEntryPoint((request, response, ex) -> escribirProblema(request, response,
 								HttpStatus.UNAUTHORIZED, "No autenticado",
@@ -70,17 +60,14 @@ public class SecurityConfig {
 				.build();
 	}
 
-	/**
-	 * El firewall de Spring Security rechaza URLs peligrosas (;, %2F, .., etc.)
-	 * antes de llegar a los controladores; asi tambien responde con ProblemDetail.
-	 */
+	/** URLs rechazadas por el firewall tambien responden con ProblemDetail. */
 	@Bean
 	public RequestRejectedHandler requestRejectedHandler() {
 		return (request, response, ex) -> escribirProblema(request, response, HttpStatus.BAD_REQUEST,
 				"Solicitud inválida", "La URL contiene caracteres no permitidos.");
 	}
 
-	/** Atajo para que los servicios lean el usuario del token sin repetir codigo. */
+	/** Usuario del token actual. */
 	public static UsuarioAutenticado usuarioActual() {
 		var autenticacion = SecurityContextHolder.getContext().getAuthentication();
 		if (autenticacion != null && autenticacion.getPrincipal() instanceof UsuarioAutenticado usuario) {
@@ -89,10 +76,7 @@ public class SecurityConfig {
 		throw new IllegalStateException("No hay un usuario autenticado en el contexto.");
 	}
 
-	/**
-	 * Aislamiento multi-tenant: el nitUniv que llega en la peticion debe ser el
-	 * mismo del token. Si no, se responde 403 y no se toca ningun dato.
-	 */
+	/** El nitUniv de la peticion debe ser el del token; si no, 403. */
 	public static void verificarTenant(String nitUniv) {
 		String nitToken = usuarioActual().nitUniv();
 		if (nitToken == null || nitUniv == null || !nitToken.trim().equals(nitUniv.trim())) {
@@ -101,8 +85,7 @@ public class SecurityConfig {
 		}
 	}
 
-	// Se escribe a mano porque este codigo corre en el filtro de seguridad,
-	// antes de que Spring MVC y su GlobalExceptionHandler entren en juego.
+	// Se escribe a mano: corre antes de Spring MVC.
 	private static void escribirProblema(HttpServletRequest request, HttpServletResponse response,
 			HttpStatus estado, String titulo, String detalle) throws IOException {
 		response.setStatus(estado.value());

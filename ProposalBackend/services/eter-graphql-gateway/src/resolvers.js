@@ -9,10 +9,7 @@ const RUTA_MOVIMIENTOS = '/api/v1/activos/movimientos-inventario';
 const RUTA_PRESTAMOS = '/api/v1/activos/prestamos';
 const RUTA_NOTIFICACIONES = '/api/v1/notificaciones';
 
-/**
- * Memoiza por peticion: si el frontend pide 50 prestamos con su `activo`,
- * cada placa se consulta una sola vez (evita el problema N+1).
- */
+/** Memoiza por peticion para evitar consultas N+1. */
 function memo(ctx, clave, fn) {
   ctx.cache ??= new Map();
   if (!ctx.cache.has(clave)) {
@@ -25,7 +22,7 @@ function memo(ctx, clave, fn) {
 
 const token = (ctx) => exigirUsuario(ctx).token;
 
-// ── Activos ──────────────────────────────────────────────────────────────────
+// Activos
 const listarActivos = (ctx, nit) =>
   memo(ctx, `activos:${nit}`, () =>
     llamar('activos', RUTA_ACTIVOS, { query: { nitUniv: nit }, token: token(ctx) }),
@@ -42,14 +39,14 @@ const invalidarActivos = (ctx) => {
   for (const k of ctx.cache?.keys() ?? []) if (k.startsWith('activo')) ctx.cache.delete(k);
 };
 
-// ── Prestamos ────────────────────────────────────────────────────────────────
+// Prestamos
 const listarPrestamos = (ctx, nit, filtros = {}) =>
   llamar('prestamos', RUTA_PRESTAMOS, {
     query: { nitUniv: nit, placaInventario: filtros.placaInventario, estado: filtros.estado },
     token: token(ctx),
   });
 
-// ── Notificaciones ───────────────────────────────────────────────────────────
+// Notificaciones
 const listarNotificaciones = (usuarioToken, { page = 0, size = 20, soloNoLeidas = false } = {}) =>
   llamar('notificaciones', RUTA_NOTIFICACIONES, {
     query: { page, size, soloNoLeidas },
@@ -74,11 +71,7 @@ const DateTime = new GraphQLScalarType({
   },
 });
 
-/**
- * Iterador asincrono cancelable. Un `async function*` no sirve aqui: su
- * return() queda en cola hasta el siguiente yield, y si el cliente se va
- * mientras se espera, el polling nunca termina.
- */
+/** Iterador cancelable: un async function* no se cierra mientras espera. */
 function vigilarNotificaciones(jwt) {
   const vistas = new Set();
   const cola = [];
@@ -99,12 +92,12 @@ function vigilarNotificaciones(jwt) {
       for (const n of [...items].reverse()) {
         if (vistas.has(n.idNotificacion)) continue;
         vistas.add(n.idNotificacion);
-        // La primera pasada solo toma la linea base: lo anterior ya lo cubre la query.
+        // La primera pasada solo fija la linea base.
         if (!primera) encolar({ notificacionRecibida: n });
       }
       primera = false;
     } catch (err) {
-      // Token vencido: cerrar es mejor que reintentar para siempre.
+      // Token vencido: cerrar en vez de reintentar.
       if (err.extensions?.code === 'UNAUTHENTICATED' || err.extensions?.code === 'FORBIDDEN') {
         encolar({ error: err });
         return;
@@ -154,7 +147,7 @@ export const resolvers = {
       return { email: u.email, nitUniv: u.nitUniv, roles: u.roles };
     },
 
-    // Una sola consulta del frontend -> varios servicios en paralelo.
+    // Consulta varios servicios en paralelo.
     resumen: async (_, __, ctx) => {
       const nit = resolverNit(ctx);
       const [activos, vigentes, pagina] = await Promise.all([
@@ -285,12 +278,7 @@ export const resolvers = {
 
   Subscription: {
     notificacionRecibida: {
-      /**
-       * El gateway revisa el servicio de notificaciones cada
-       * ETER_POLL_NOTIFICACIONES_MS y empuja por el WebSocket solo las nuevas.
-       * Si el servicio de notificaciones algun dia publica eventos, basta con
-       * cambiar este iterador por un consumidor de ese canal.
-       */
+      /** Polling cada ETER_POLL_NOTIFICACIONES_MS; empuja solo las nuevas. */
       subscribe: (_, __, ctx) => vigilarNotificaciones(token(ctx)),
     },
   },

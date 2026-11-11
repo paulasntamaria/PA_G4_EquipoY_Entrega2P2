@@ -14,13 +14,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-/**
- * Pregunta a activos-service si un activo existe.
- *
- * Tiene timeouts para no quedarse esperando si activos no responde, y convierte
- * cualquier fallo de comunicacion en ServicioExternoNoDisponibleException (503)
- * en lugar de dejar escapar un 500 generico.
- */
+/** Consulta a activos-service si un activo existe; los fallos se convierten en 503. */
 @Component
 public class ActivoRestClient implements ActivoExistencePort {
 
@@ -51,8 +45,7 @@ public class ActivoRestClient implements ActivoExistencePort {
 		} catch (HttpClientErrorException.NotFound e) {
 			return false;
 		} catch (RestClientException e) {
-			// Caido, timeout, 5xx o una respuesta inesperada (401/403): no se puede
-			// saber si el activo existe, asi que la operacion no debe continuar.
+			// No se sabe si el activo existe: no se continua.
 			log.error("Fallo la consulta a activos-service ({}/{}): {}", nit, placa, e.getMessage());
 			throw new ServicioExternoNoDisponibleException(
 					"No fue posible verificar el activo porque el servicio de activos no está disponible. "

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.eter.eterbackend.notificaciones.domain.exception.NotificacionNoEncontradaException;
 
-/** Errores propios de notificaciones. Los comunes (400, 401, 403, 409, 500) vienen de la base. */
+/** Errores propios de notificaciones; los comunes vienen de ManejadorErroresBase. */
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ManejadorErroresBase {
 

@@ -19,15 +19,7 @@ import com.eter.eterbackend.activos.domain.repository.ActivoFijoRepository;
 import com.eter.eterbackend.shared.events.domain.EventoOutbox;
 import com.eter.eterbackend.shared.events.domain.EventoOutboxRepository;
 
-/**
- * Casos de uso del activo fijo. Es una clase Java normal: no tiene @Service ni
- * ninguna anotacion de Spring. El cableado se hace en ActivoFijoConfig, que es
- * lo que mantiene la capa de aplicacion independiente del framework.
- *
- * crear y darDeBaja son @Transactional porque, ademas del cambio en
- * activo_fijo, dejan su evento en el Outbox (ACTIVO_CREADO / ACTIVO_DADO_DE_BAJA).
- * Se guardan los dos o ninguno.
- */
+/** Casos de uso del activo fijo, sin Spring (se cablea en ActivoFijoConfig). */
 public class ActivoFijoService implements
 		CrearActivoFijoUseCase,
 		ActualizarActivoFijoUseCase,
@@ -71,7 +63,7 @@ public class ActivoFijoService implements
 	public ActivoFijo actualizar(ActualizarActivoFijoUseCase.Command command) {
 		Objects.requireNonNull(command, "El comando de actualización no puede ser nulo.");
 
-		// Se comprueba que exista antes de escribir: el PUT no crea recursos nuevos.
+		// El PUT no crea recursos nuevos.
 		buscarObligatorio(command.nitUniv(), command.placaInventario());
 
 		ActivoFijo actualizado = new ActivoFijo(
@@ -111,10 +103,7 @@ public class ActivoFijoService implements
 								.formatted(placaInventario, nitUniv)));
 	}
 
-	/**
-	 * El dedupKey lleva un sello de tiempo para que un activo que se da de baja,
-	 * se reactiva por PUT y se vuelve a dar de baja produzca dos eventos distintos.
-	 */
+	/** El sello de tiempo permite dar de baja el mismo activo mas de una vez. */
 	private void registrarEvento(String tipo, ActivoFijo activo) {
 		eventoOutboxRepository.guardarSiNoExiste(EventoOutbox.nuevo(
 				tipo + ":" + activo.assetKey() + ":" + System.nanoTime(),

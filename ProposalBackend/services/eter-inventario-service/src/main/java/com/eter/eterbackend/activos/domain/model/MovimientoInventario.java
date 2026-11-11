@@ -3,7 +3,7 @@ package com.eter.eterbackend.activos.domain.model;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-/** Movimiento de inventario. La tabla es append-only: se registra, no se edita. */
+/** Movimiento de inventario (solo se registra, no se edita). */
 public record MovimientoInventario(
 		Long idMovimiento,
 		String nitUniv,

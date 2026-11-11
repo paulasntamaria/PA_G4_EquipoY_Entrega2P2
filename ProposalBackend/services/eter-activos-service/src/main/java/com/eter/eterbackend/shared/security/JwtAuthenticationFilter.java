@@ -23,11 +23,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Valida el JWT Bearer que exige el contrato (securitySchemes.bearerAuth).
- * Firma HS256 con el secreto compartido. Si el token es valido deja en el
- * contexto de seguridad un UsuarioAutenticado con el correo y el nitUniv.
- */
+/** Valida el JWT (HS256) y deja el UsuarioAutenticado en el contexto. */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -63,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				var autenticacion = new UsernamePasswordAuthenticationToken(usuario, null, roles);
 				SecurityContextHolder.getContext().setAuthentication(autenticacion);
 			} catch (JwtException | IllegalArgumentException ex) {
-				// Token invalido: se deja el contexto vacio y Spring Security responde 401.
+				// Token invalido: Spring Security responde 401.
 				SecurityContextHolder.clearContext();
 			}
 		}

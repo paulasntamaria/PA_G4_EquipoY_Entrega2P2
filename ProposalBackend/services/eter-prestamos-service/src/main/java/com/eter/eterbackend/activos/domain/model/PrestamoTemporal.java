@@ -6,11 +6,7 @@ import java.util.UUID;
 
 import com.eter.eterbackend.activos.domain.exception.DatoInvalidoException;
 
-/**
- * Prestamo temporal de un activo.
- * Aqui vive la regla que resolvio el riesgo de la Entrega 1: un prestamo
- * solo se puede devolver una vez, y "vencido" se calcula, no se guarda.
- */
+/** Prestamo temporal: se devuelve una sola vez y "vencido" se calcula. */
 public record PrestamoTemporal(
 		UUID idPrestamo,
 		String nitUniv,
@@ -40,14 +36,14 @@ public record PrestamoTemporal(
 		}
 	}
 
-	/** Prestamo recien creado: siempre nace VIGENTE y sin devolucion real. */
+	/** Nace VIGENTE y sin devolucion real. */
 	public static PrestamoTemporal nuevo(String nitUniv, String placaInventario, String numDocumento,
 			LocalDateTime fechaSalida, LocalDateTime fechaDevolucionPactada) {
 		return new PrestamoTemporal(null, nitUniv, placaInventario, numDocumento,
 				fechaSalida, fechaDevolucionPactada, null, EstadoPrestamo.VIGENTE);
 	}
 
-	/** Derivado del contrato: true si sigue VIGENTE y la fecha pactada ya paso. */
+	/** true si sigue VIGENTE y la fecha pactada ya paso. */
 	public boolean vencido() {
 		return estado == EstadoPrestamo.VIGENTE && fechaDevolucionPactada.isBefore(LocalDateTime.now());
 	}
@@ -60,7 +56,7 @@ public record PrestamoTemporal(
 		return nitUniv + ":" + placaInventario;
 	}
 
-	/** Regla de negocio: solo un prestamo VIGENTE se puede devolver. */
+	/** Solo un prestamo VIGENTE se puede devolver. */
 	public PrestamoTemporal registrarDevolucion(LocalDateTime fechaDevolucionReal) {
 		Objects.requireNonNull(fechaDevolucionReal, "El campo fechaDevolucionReal es obligatorio.");
 		if (fechaDevolucionReal.isBefore(fechaSalida)) {

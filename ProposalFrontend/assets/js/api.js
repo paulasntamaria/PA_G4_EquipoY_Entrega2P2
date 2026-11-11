@@ -1,35 +1,17 @@
-/*
- * ETER · cliente del gateway GraphQL (eter-graphql-gateway, :4000/graphql).
- *
- * Expone window.ETER.sesion y window.ETER.api. Las paginas solo usan estos
- * metodos; nunca arman GraphQL por su cuenta.
- *
- * Dos modos con la misma interfaz:
- *   - real: POST /graphql con el JWT y WebSocket (protocolo graphql-transport-ws)
- *     para la suscripcion notificacionRecibida.
- *   - demostracion: los mismos metodos sobre datos guardados en este navegador.
- *     Imita las reglas y mensajes reales de los microservicios y, con unos
- *     segundos de retraso, lo que hacen los consumidores de Kafka (kardex y
- *     bandeja de notificaciones).
- *
- * Todos los metodos devuelven promesas. Los errores son ETER.ApiError con
- * { code, message, servicio, status, errores: [{campo, mensaje}] }.
- * code: UNAUTHENTICATED, FORBIDDEN, NOT_FOUND, CONFLICT, BAD_USER_INPUT,
- *       SERVICE_UNAVAILABLE, SIN_CONEXION, RESPUESTA_INVALIDA.
- */
+// Cliente del gateway GraphQL (ETER.sesion y ETER.api), con modo demostración.
 (function () {
   'use strict';
   const ETER = (window.ETER = window.ETER || {});
 
   const almacen = {
     leer(k) { try { return localStorage.getItem(k); } catch { return null; } },
-    escribir(k, v) { try { localStorage.setItem(k, v); } catch { /* sin almacenamiento disponible */ } },
+    escribir(k, v) { try { localStorage.setItem(k, v); } catch { /* sin almacenamiento */ } },
     borrar(k) { try { localStorage.removeItem(k); } catch { /* idem */ } },
   };
   const CLAVES = { gateway: 'eter.gateway', token: 'eter.token', demo: 'eter.demo', datos: 'eter.demo.datos' };
   const GATEWAY_POR_DEFECTO = 'http://localhost:4000/graphql';
 
-  // ── Errores ───────────────────────────────────────────────────────────────
+  // Errores
   class ApiError extends Error {
     constructor(code, message, extra = {}) {
       super(message);
@@ -42,7 +24,7 @@
   }
   const desdeGraphQL = (e) => new ApiError(e.extensions?.code || 'ERROR', e.message, e.extensions || {});
 
-  // ── Sesion ────────────────────────────────────────────────────────────────
+  // Sesión
   function leerJwt(token) {
     try {
       const b64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -60,7 +42,7 @@
     get token() { return almacen.leer(CLAVES.token); },
     get demo() { return almacen.leer(CLAVES.demo) === '1'; },
     activa() { return this.demo || !!this.token; },
-    /** Datos del JWT (sin verificar la firma: eso lo hace el gateway). */
+    /** Datos del JWT (la firma la verifica el gateway). */
     usuario() {
       if (this.demo) return { ...USUARIO_DEMO };
       const c = this.token && leerJwt(this.token);
@@ -75,11 +57,11 @@
       const u = this.usuario();
       return !!(u && u.exp && u.exp * 1000 < Date.now());
     },
-    /** Claims de un token cualquiera ({ sub, nitUniv, roles, iat, exp }) o null. No verifica la firma. */
+    /** Claims del token o null. No verifica la firma. */
     claims(token) {
       return leerJwt(String(token || '').trim().replace(/^Bearer\s+/i, ''));
     },
-    /** true si el texto parece un JWT con los claims que usa ETER. */
+    /** true si parece un JWT de ETER. */
     tokenValido(token) {
       const c = this.claims(token);
       return !!(c && c.sub && c.nitUniv);
@@ -99,7 +81,7 @@
     },
   };
 
-  // ── Utilidades de fecha (LocalDateTime sin zona, como esperan los servicios) ─
+  // Fechas (LocalDateTime sin zona)
   const dos = (n) => String(n).padStart(2, '0');
   /** Date -> "2026-10-28T08:00:00" en hora local. */
   function isoLocal(fecha = new Date()) {
@@ -114,7 +96,7 @@
   }
   const sinVacios = (o) => Object.fromEntries(Object.entries(o || {}).filter(([, v]) => v !== undefined && v !== null && v !== ''));
 
-  // ── Modo real ─────────────────────────────────────────────────────────────
+  // Modo real
   async function gql(query, variables) {
     let r;
     try {
@@ -137,7 +119,7 @@
     const datos = cuerpo.data;
     const sinDatos = !datos || Object.values(datos).every((v) => v == null);
     if (errores.length && sinDatos) throw desdeGraphQL(errores[0]);
-    // Datos parciales: la pagina sigue y app.js avisa que algo no cargo.
+    // Datos parciales: se avisa y se sigue.
     if (errores.length) window.dispatchEvent(new CustomEvent('eter:avisos', { detail: errores.map(desdeGraphQL) }));
     return datos;
   }
@@ -231,11 +213,7 @@
 
     marcarTodasNotificacionesLeidas: async () => (await gql('mutation { marcarTodasNotificacionesLeidas }')).marcarTodasNotificacionesLeidas,
 
-    /**
-     * Suscripcion notificacionRecibida por WebSocket (graphql-transport-ws).
-     * onEstado recibe 'conectando' | 'en-vivo' | 'reconectando' | 'cerrada'.
-     * Devuelve una funcion para cerrarla.
-     */
+    /** Suscripción por WebSocket. Devuelve una función para cerrarla. */
     suscribirNotificaciones({ onNext, onError, onEstado } = {}) {
       const url = sesion.gateway.replace(/^http/i, 'ws');
       const query = `subscription { notificacionRecibida { ${F.notificacion} } }`;
@@ -281,7 +259,7 @@
     },
   };
 
-  // ── Modo demostracion ─────────────────────────────────────────────────────
+  // Modo demostración
   const demo = (() => {
     const NIT = USUARIO_DEMO.nitUniv;
     const EMAIL = USUARIO_DEMO.email;
@@ -388,7 +366,7 @@
         // El vigia lo detecta poco despues de la fecha pactada.
         if (vencido(p)) notificaciones.push(notif('PRESTAMO_VENCIDO', p, d(-1, 18, 1), false));
       });
-      // La ultima creada sigue sin leer, como una bandeja real.
+      // La última queda sin leer.
       notificaciones.sort((a, b) => a.creadaEn.localeCompare(b.creadaEn));
       const reciente = notificaciones.filter((x) => x.tipo === 'PRESTAMO_CREADO').at(-1);
       if (reciente) { reciente.leida = false; reciente.leidaEn = null; }
@@ -396,7 +374,7 @@
       return { version: 1, activos, prestamos, asignaciones, movimientos, notificaciones, sigMov: movimientos.length + 1, pendientes: [] };
     }
 
-    // Plantillas de NotificacionEventConsumer (eter-notificaciones-service).
+    // Mismos textos que NotificacionEventConsumer.
     function notif(tipo, p, creadaEn, leida) {
       const fecha = p.fechaDevolucionPactada.slice(0, 16);
       const placa = p.placaInventario;
@@ -413,7 +391,7 @@
       };
     }
 
-    // Lo que harian los consumidores de Kafka, unos segundos despues de responder.
+    // Simula los consumidores de Kafka.
     function encolarEvento(evento) {
       cargar().pendientes.push({ ...evento, listoEn: Date.now() + 2500 });
       guardar();
@@ -633,7 +611,7 @@
         return copia(conVencido(p));
       },
 
-      // notificaciones-service exige el rol de escritura para todo lo que no es GET.
+      // Como notificaciones-service: requiere ADMIN.
       async marcarNotificacionLeida(id) {
         await pausa(120); exigirAdmin();
         const n = bandeja().find((x) => x.idNotificacion === id);
@@ -649,7 +627,7 @@
         return 0;
       },
 
-      /** Igual que el gateway: revisa cada pocos segundos y empuja solo las nuevas. */
+      /** Polling, como el gateway. */
       suscribirNotificaciones({ onNext, onEstado } = {}) {
         onEstado?.('conectando');
         procesarEventos();
@@ -667,13 +645,12 @@
         return () => { cerrada = true; clearTimeout(arranque); clearInterval(intervalo); onEstado?.('cerrada'); };
       },
 
-      /** Solo en demostracion: vuelve a los datos iniciales. */
       reiniciarDatos() { db = sembrar(); guardar(); },
     };
     return api;
   })();
 
-  // ── Fachada: elige el modo en cada llamada ────────────────────────────────
+  // Elige el modo en cada llamada
   const api = new Proxy({}, {
     get(_, nombre) {
       const fuente = sesion.demo ? demo : real;

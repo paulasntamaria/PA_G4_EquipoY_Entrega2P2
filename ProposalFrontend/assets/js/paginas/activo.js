@@ -1,11 +1,4 @@
-/*
- * ETER · Detalle de un activo (activo.html?placa=AF-2026-0001)
- *
- * api.activo(placa) trae el activo con prestamoVigente, prestamos, movimientos
- * (kardex) y asignaciones. Tras crear (?creado=1), dar de baja o registrar una
- * devolución, la página espera unos segundos a que inventario consuma el evento
- * de Kafka y vuelve a consultar para mostrar el movimiento nuevo en el kardex.
- */
+// Detalle de un activo (activo.html?placa=...).
 (function () {
   'use strict';
   const { ui, api, sesion } = ETER;
@@ -40,11 +33,11 @@
   };
 
   let activo = null;
-  let esperando = null; // { tipo, evento, antes, intentos, agotado }
+  let esperando = null;
   let temporizador = null;
   let sedesPedidas = false;
 
-  // ── Utilidades ────────────────────────────────────────────────────────────
+  // Utilidades
   const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
   const enc = encodeURIComponent;
   const desc = (campo) => (a, b) => String(b[campo] || '').localeCompare(String(a[campo] || ''));
@@ -73,7 +66,7 @@
     return dias >= 1 ? `${plural(dias, 'día', 'días')} tarde` : 'Tarde, el mismo día';
   }
 
-  /** "2026-10-28 08:00" en dos renglones: fecha y hora. */
+  /** Fecha y hora en dos renglones. */
   function dosRenglones(iso) {
     const [fecha, hora] = ui.fmt.registro(iso).split(' ');
     return ui.html`<span>${fecha}</span>${hora ? ui.html`<span class="hora">${hora}</span>` : ''}`;
@@ -87,10 +80,10 @@
       const u = new URL(location.href);
       u.searchParams.delete(nombre);
       history.replaceState(null, '', u);
-    } catch { /* desde file:// algunos navegadores no lo permiten */ }
+    } catch { /* file:// no lo permite */ }
   }
 
-  // ── Estados de la página ──────────────────────────────────────────────────
+  // Estados de la página
   function pintarCargando() {
     el.cabecera.innerHTML = ui.html`
       <div class="cabecera-cuerpo">
@@ -128,7 +121,7 @@
       <p class="reintentar"><button type="button" class="boton boton--sm" data-accion="reintentar">Reintentar</button></p>`));
   }
 
-  // ── Bloques del detalle ───────────────────────────────────────────────────
+  // Bloques del detalle
   const bloqueIdentidad = (a) => ui.html`
     <div class="hoja identidad">
       <div class="identidad-rejilla">
@@ -264,7 +257,7 @@
       </div>`;
   }
 
-  // ── Pintado completo ──────────────────────────────────────────────────────
+  // Pintado
   function pintar(a) {
     activo = a;
     document.title = `${a.placaInventario} · ${a.descripcion} · ETER Patrimonio`;
@@ -330,7 +323,7 @@
     );
   }
 
-  // ── Carga y seguimiento de eventos ────────────────────────────────────────
+  // Seguimiento de eventos
   function programarSeguimiento() {
     clearTimeout(temporizador);
     temporizador = setTimeout(() => {
@@ -340,7 +333,7 @@
     }, ESPERA_MS);
   }
 
-  /** Marca que una acción publicó un evento cuyo movimiento debe llegar al kardex. */
+  /** Espera a que el movimiento llegue al kardex. */
   function esperar(tipo, evento) {
     esperando = { tipo, evento, antes: contar(activo, tipo), intentos: 0, agotado: false };
   }
@@ -370,7 +363,7 @@
     if (esperando && !esperando.agotado) programarSeguimiento();
   }
 
-  // ── Formularios ───────────────────────────────────────────────────────────
+  // Formularios
   function prepararForm(form, alerta, boton) {
     form.reset();
     ui.limpiarErrores(form);
@@ -379,11 +372,7 @@
     ui.ocupado(boton, false);
   }
 
-  /**
-   * Envía una mutación desde un diálogo. Errores: BAD_USER_INPUT marca campos;
-   * todos pintan la alerta del diálogo. conflicto: {campo, mensaje} para marcar
-   * el campo responsable cuando el servicio responde CONFLICT.
-   */
+  /** Envía una mutación desde un diálogo y muestra los errores. */
   async function enviar({ form, alerta, boton, dlg, conflicto }, mutacion, exito) {
     ui.limpiarErrores(form);
     alerta.hidden = true;
@@ -422,7 +411,7 @@
       const lista = await api.activos();
       const sedes = [...new Set(lista.map((x) => x.codSede))].sort((x, y) => x.localeCompare(y, 'es', { numeric: true }));
       $('#lista-sedes').innerHTML = ui.html`${sedes.map((s) => ui.html`<option value="${s}"></option>`)}`;
-    } catch { sedesPedidas = false; /* sin sugerencias; el campo sigue funcionando */ }
+    } catch { sedesPedidas = false; /* sin sugerencias */ }
   }
 
   function abrirEditar() {
@@ -551,7 +540,7 @@
     await cargar();
   }
 
-  // ── Eventos ───────────────────────────────────────────────────────────────
+  // Eventos
   document.addEventListener('click', (ev) => {
     const cerrar = ev.target.closest('[data-cerrar]');
     if (cerrar) { ui.cerrar(cerrar.closest('dialog')); return; }
@@ -573,7 +562,7 @@
     }
   });
 
-  // ── Arranque ──────────────────────────────────────────────────────────────
+  // Arranque
   if (!placa) { pintarInexistente(); return; }
   if (recienCreado) {
     esperando = { tipo: 'ALTA', evento: 'ACTIVO_CREADO', antes: 0, intentos: 0, agotado: false };

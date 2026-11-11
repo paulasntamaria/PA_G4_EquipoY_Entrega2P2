@@ -5,10 +5,7 @@ import java.util.Objects;
 
 import com.eter.eterbackend.activos.domain.exception.DatoInvalidoException;
 
-/**
- * Activo fijo. Su identidad es la clave compuesta (nitUniv, placaInventario):
- * cada universidad maneja su propio espacio de placas.
- */
+/** Activo fijo; su identidad es (nitUniv, placaInventario). */
 public record ActivoFijo(
 		String nitUniv,
 		String placaInventario,
@@ -32,12 +29,12 @@ public record ActivoFijo(
 		Objects.requireNonNull(estado, "El campo estado es obligatorio.");
 	}
 
-	/** Identidad estable del activo que se usa como key de Kafka. */
+	/** Key de Kafka del activo. */
 	public String assetKey() {
 		return nitUniv + ":" + placaInventario;
 	}
 
-	/** Baja logica: conserva el registro y solo cambia el estado. */
+	/** Baja logica: solo cambia el estado. */
 	public ActivoFijo darDeBaja() {
 		return new ActivoFijo(nitUniv, placaInventario, descripcion, codUnspsc, codSede,
 				valorContable, EstadoActivo.BAJA);

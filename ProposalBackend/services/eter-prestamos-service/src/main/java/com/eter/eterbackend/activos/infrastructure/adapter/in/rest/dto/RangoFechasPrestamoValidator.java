@@ -8,7 +8,7 @@ public class RangoFechasPrestamoValidator
 
 	@Override
 	public boolean isValid(ActivosDtos.CrearPrestamoRequest peticion, ConstraintValidatorContext contexto) {
-		// Si falta alguna fecha ya responde @NotNull; aqui solo se compara el rango.
+		// Las fechas nulas las reporta @NotNull.
 		if (peticion == null || peticion.fechaSalida() == null || peticion.fechaDevolucionPactada() == null) {
 			return true;
 		}
@@ -16,8 +16,7 @@ public class RangoFechasPrestamoValidator
 			return true;
 		}
 
-		// El error se asocia al campo para que el GlobalExceptionHandler lo reporte
-		// como "fechaDevolucionPactada: debe ser posterior a fechaSalida".
+		// El error se asocia al campo fechaDevolucionPactada.
 		contexto.disableDefaultConstraintViolation();
 		contexto.buildConstraintViolationWithTemplate(contexto.getDefaultConstraintMessageTemplate())
 				.addPropertyNode("fechaDevolucionPactada")

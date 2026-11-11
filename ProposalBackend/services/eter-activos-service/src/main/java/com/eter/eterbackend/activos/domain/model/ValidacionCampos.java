@@ -2,10 +2,7 @@ package com.eter.eterbackend.activos.domain.model;
 
 import com.eter.eterbackend.activos.domain.exception.DatoInvalidoException;
 
-/**
- * Validaciones que se repiten en todos los modelos del dominio.
- * Vive en el dominio y no usa nada de Spring: el dominio no conoce frameworks.
- */
+/** Validaciones comunes del dominio. */
 final class ValidacionCampos {
 
 	private ValidacionCampos() {

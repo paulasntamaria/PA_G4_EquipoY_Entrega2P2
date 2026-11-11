@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""
-Genera un JWT HS256 de desarrollo para probar la API en Postman.
-No usa librerias externas: solo la libreria estandar de Python.
-
-Uso:  python3 tools/generar_token.py
-"""
+"""Genera un JWT HS256 de desarrollo. Uso: python3 tools/generar_token.py"""
 
 import base64
 import hashlib
@@ -12,10 +7,10 @@ import hmac
 import json
 import time
 
-# Debe coincidir con ETER_JWT_SECRET de infrastructure/.env
+# Igual a ETER_JWT_SECRET de infrastructure/.env
 SECRET = b"eter-jwt-secret-development-only-CHANGE-IN-PRODUCTION-9f4a8c7e"
 
-EMAIL = "79123456@eter.edu.co"   # sale en el claim sub: destinatario de la bandeja
+EMAIL = "79123456@eter.edu.co"   # claim sub: destinatario de la bandeja
 NIT_UNIV = "900123456-1"         # tenant
 
 

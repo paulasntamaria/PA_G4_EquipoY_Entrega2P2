@@ -15,11 +15,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 
-/**
- * Completa el contrato OpenAPI generado con las respuestas de error.
- * springdoc solo ve el camino feliz (200/201); aqui se agregan a cada operacion
- * los codigos comunes y, por operationId, los propios de cada endpoint.
- */
+/** Agrega al contrato OpenAPI las respuestas de error de cada operacion. */
 public final class ContratoErroresOpenApi {
 
 	private static final String ESQUEMA = "ProblemDetail";
@@ -39,9 +35,7 @@ public final class ContratoErroresOpenApi {
 	private ContratoErroresOpenApi() {
 	}
 
-	/**
-	 * @param especificos operationId -> codigos extra de esa operacion (404, 409, 503...)
-	 */
+	/** @param especificos operationId -> codigos extra (404, 409, 503...) */
 	public static void documentar(OpenAPI openApi, Map<String, List<String>> especificos) {
 		if (openApi.getComponents() == null) {
 			openApi.setComponents(new Components());

@@ -17,7 +17,7 @@ public interface PrestamoTemporalRepository {
 	/** Lo usa el vigia: prestamos VIGENTE cuya fecha pactada ya paso. */
 	List<PrestamoTemporal> findVigentesVencidos(LocalDateTime corte);
 
-	/** true si el activo ya tiene un prestamo VIGENTE (evita duplicar el POST). */
+	/** true si el activo ya tiene un prestamo VIGENTE. */
 	boolean existeVigente(String nitUniv, String placaInventario);
 
 	PrestamoTemporal save(PrestamoTemporal prestamoTemporal);

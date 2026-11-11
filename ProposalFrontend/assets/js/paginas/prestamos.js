@@ -1,15 +1,4 @@
-/*
- * ETER · Préstamos (prestamos.html)
- *
- * Cifras del día, calendario de vigentes, registro filtrable, nuevo préstamo
- * y registro de devolución. Todo pasa por ETER.api.
- *
- * Parámetros de URL:
- *   ?filtro=vigentes|vencidos|devueltos|todos
- *   ?placa=AF-2026-0001   prefiltra el buscador (sin ?filtro muestra todos)
- *   ?nuevo= / ?nuevo=AF-… abre el diálogo de nuevo préstamo, con la placa si viene
- *   ?devolver=ID          abre la devolución de ese préstamo
- */
+// Préstamos. URL: ?filtro, ?placa, ?nuevo, ?devolver=ID.
 (function () {
   'use strict';
   if (!ETER.ui.montar({ pagina: 'prestamos' })) return;
@@ -57,14 +46,14 @@
     cargado: false,
     filtro: filtroUrl && Object.hasOwn(FILTROS, filtroUrl) ? filtroUrl : placaUrl ? 'todos' : 'vigentes',
     q: placaUrl,
-    activos: null,        // Map placa -> activo en estado ACTIVO (se trae al abrir el diálogo)
+    activos: null,        // Map placa -> activo ACTIVO
     turnoActivos: 0,
-    reciente: null,       // idPrestamo recién creado o devuelto, para resaltarlo
+    reciente: null,       // idPrestamo a resaltar
     calCentrado: false,
     enDevolucion: null,   // préstamo abierto en el diálogo de devolución
   };
 
-  // ── Utilidades ────────────────────────────────────────────────────────────
+  // Utilidades
   const ms = (iso) => (iso ? new Date(iso).getTime() : NaN);
   const inicioDia = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
   const sumarDias = (t, n) => { const d = new Date(t); d.setDate(d.getDate() + n); return d.getTime(); };
@@ -77,7 +66,7 @@
   const consulta = () => normal(estado.q.trim());
   const coincide = (p, q) => !q || [p.placaInventario, p.numDocumento, p.activo?.descripcion].some((v) => normal(v).includes(q));
 
-  /** Cuánto falta (o cuánto se pasó) de la devolución pactada de un préstamo vigente. */
+  /** Cuánto falta o cuánto se pasó de la fecha pactada. */
   function plazo(p) {
     const n = fmt.diasHasta(p.fechaDevolucionPactada);
     if (n == null) return { texto: 'sin fecha pactada', corto: '', tono: '' };
@@ -92,7 +81,7 @@
     return { texto: `vence en ${n} días`, corto: `vence en ${n} d`, tono: '' };
   }
 
-  /** Devolución real frente a la pactada: a tiempo o cuánto tarde. */
+  /** Devolución a tiempo o con retraso. */
   function cumplimiento(real, pactada) {
     const r = ms(real), pz = ms(pactada);
     if (Number.isNaN(r) || Number.isNaN(pz)) return null;
@@ -111,10 +100,10 @@
       if (q) u.searchParams.set('placa', q); else u.searchParams.delete('placa');
       quitar.forEach((k) => u.searchParams.delete(k));
       history.replaceState(null, '', u);
-    } catch { /* desde file:// algunos navegadores niegan replaceState */ }
+    } catch { /* file:// no lo permite */ }
   }
 
-  // ── Carga ─────────────────────────────────────────────────────────────────
+  // Carga
   const CABEZA = html`<thead><tr>
     <th scope="col">Placa</th><th scope="col">Activo</th><th scope="col">Custodio</th><th scope="col">Salida</th>
     <th scope="col">Devolución pactada</th><th scope="col">Devolución real</th><th scope="col">Estado</th>
@@ -156,7 +145,7 @@
     return true;
   }
 
-  // ── Cifras ────────────────────────────────────────────────────────────────
+  // Cifras
   const cifra = (valor, etiqueta, nota, peligro = false) => html`
     <div class="cifra${peligro ? ' cifra--peligro' : ''}">
       <span class="cifra-valor">${valor}</span>
@@ -189,7 +178,7 @@
         : `Sin devoluciones desde el ${fmt.fecha(desde)}`)}`;
   }
 
-  // ── Calendario de vigentes ────────────────────────────────────────────────
+  // Calendario de vigentes
   function pintarCalendario() {
     const anterior = el.cal.querySelector('.cal')?.scrollLeft;
     const vigentes = estado.prestamos.filter((p) => p.estado === 'VIGENTE').sort(porPactada);
@@ -204,8 +193,7 @@
       return;
     }
 
-    // Escala: al menos una semana atrás y dos adelante; se estira para que quepan
-    // las salidas y las fechas pactadas (con aire para el rótulo del plazo).
+    // Escala: como mínimo una semana atrás y dos adelante.
     const ahora = Date.now();
     const hoy0 = inicioDia(ahora);
     let ini = sumarDias(hoy0, -7);
@@ -234,7 +222,7 @@
       numeros.push(html`<span class="cal-num${finde ? ' cal-num--finde' : ''}${lunes ? ' cal-num--lunes' : ''}${hoy ? ' cal-num--hoy' : ''}" style="left:${n(izq)}%;width:${n(ancho)}%"><b>${d.getDate()}</b></span>`);
       if (i === 0 || d.getDate() === 1) meses.push({ i, izq, d });
     });
-    // Si el primer rótulo de mes queda pegado al siguiente, sobra.
+    // Quita el primer mes si queda pegado al siguiente.
     if (meses.length > 1 && meses[1].i - meses[0].i < 4) meses.shift();
     const rotulosMes = meses.map(({ izq, d }, k) => html`<span class="cal-mes" style="left:${n(izq)}%">${MESES[d.getMonth()]}${k === 0 || d.getMonth() === 0 ? ` ${d.getFullYear()}` : ''}</span>`);
 
@@ -285,8 +273,7 @@
       </div>`;
     el.calEscala.textContent = `Del ${fmt.fecha(ini)} al ${fmt.fecha(sumarDias(fin, -1))} · ${plural(dias.length, 'día', 'días')}. Filas por devolución pactada.`;
 
-    // En pantallas angostas el calendario se desplaza: la primera vez deja hoy a un
-    // tercio del ancho visible, para que se vea lo que falta de cada plazo.
+    // En móvil, deja hoy a un tercio del ancho visible.
     const caja = el.cal.querySelector('.cal');
     if (estado.calCentrado && anterior != null) {
       caja.scrollLeft = anterior;
@@ -298,7 +285,7 @@
     estado.calCentrado = true;
   }
 
-  // ── Registro (segmentos, buscador y tabla) ────────────────────────────────
+  // Registro
   function pintarSegmentos() {
     const q = consulta();
     const base = estado.prestamos.filter((p) => coincide(p, q));
@@ -432,14 +419,14 @@
     if (ev.target.closest('[data-nuevo]')) abrirNuevo('');
   });
 
-  // ── Diálogos: comunes ─────────────────────────────────────────────────────
+  // Diálogos
   function limpiarCampo(input) {
     input.removeAttribute('aria-invalid');
     const sig = input.nextElementSibling;
     if (sig && sig.hasAttribute('data-error')) sig.remove();
   }
 
-  /** Muestra el error de una mutación en el diálogo (o redirige si la sesión cayó). */
+  /** Muestra el error en el diálogo. */
   function errorEnDialogo(e, form, hueco) {
     if (e?.code === 'UNAUTHENTICATED') { ui.error(e); return; }
     if (!(e instanceof ETER.ApiError)) console.error(e);
@@ -455,14 +442,14 @@
   document.querySelectorAll('.dialogo [data-cerrar]').forEach((b) =>
     b.addEventListener('click', () => ui.cerrar(b.closest('dialog'))));
 
-  // ── Nuevo préstamo ────────────────────────────────────────────────────────
+  // Nuevo préstamo
   const campoN = nuevo.form.elements;
 
   function vigentePorPlaca(placa) {
     return estado.prestamos.find((p) => p.estado === 'VIGENTE' && p.placaInventario === placa) || null;
   }
 
-  /** Activo conocido: de la lista ACTIVO del diálogo o, si no, del resumen que traen los préstamos. */
+  /** Activo por placa, de la lista del diálogo o de los préstamos. */
   function activoConocido(placa) {
     const a = estado.activos?.get(placa);
     if (a) return a;
@@ -632,7 +619,7 @@
 
   nuevo.dlg.addEventListener('close', () => { estado.turnoActivos++; });
 
-  // ── Registrar devolución ──────────────────────────────────────────────────
+  // Registrar devolución
   const campoD = dev.form.elements;
 
   function actualizarCumple() {
@@ -726,7 +713,7 @@
 
   dev.dlg.addEventListener('close', () => { estado.enDevolucion = null; });
 
-  // ── Arranque ──────────────────────────────────────────────────────────────
+  // Arranque
   ui.soloAdmin(el.nuevo);
   el.nuevo.addEventListener('click', () => abrirNuevo(''));
 

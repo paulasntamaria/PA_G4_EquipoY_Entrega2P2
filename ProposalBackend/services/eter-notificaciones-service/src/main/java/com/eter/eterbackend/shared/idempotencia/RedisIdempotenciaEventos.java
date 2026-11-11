@@ -9,23 +9,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Idempotencia de consumidores apoyada en Redis.
- *
- * Por cada evento se guarda la clave  eter:idem:{grupo}:{eventId}  con dos estados:
- *
- *  1. SET clave PROCESANDO NX EX (ttl corto)  -> solo una instancia "gana" el evento.
- *  2. Si la accion termina bien: SET clave PROCESADO EX (ttl largo).
- *     Si la accion falla: DEL clave, para que el reintento si pueda entrar.
- *
- * La clave lleva el grupo de consumidor porque un mismo evento lo deben procesar
- * notificaciones E inventario: cada grupo lleva su propia cuenta.
- *
- * Redis es la primera barrera (rapida y sin tocar la base). La segunda son las
- * restricciones UNIQUE de PostgreSQL, que siguen ahi por si Redis se reinicia,
- * la clave expira o Redis no esta disponible (en ese caso se sigue procesando:
- * fail-open, y se deja un WARN en el log).
- */
+/** Idempotencia en Redis; si Redis falla, el UNIQUE de la base frena duplicados. */
 @Component
 public class RedisIdempotenciaEventos implements IdempotenciaEventos {
 
@@ -73,7 +57,7 @@ public class RedisIdempotenciaEventos implements IdempotenciaEventos {
 				throw new EventoEnProcesoException(
 						"El evento %s lo está procesando otra instancia.".formatted(eventId));
 			}
-			// La clave expiro entre el SET NX y el GET: se vuelve a intentar desde cero.
+			// La clave expiro: se intenta de nuevo.
 			return ejecutarUnaVez(eventId, accion);
 		}
 
@@ -101,7 +85,7 @@ public class RedisIdempotenciaEventos implements IdempotenciaEventos {
 		try {
 			redis.opsForValue().set(clave, PROCESADO, ttlProcesado);
 		} catch (DataAccessException ex) {
-			// El trabajo ya quedo hecho en la base; si llega un duplicado lo frena el UNIQUE.
+			// Ya quedo en la base; el UNIQUE frena duplicados.
 			log.warn("No se pudo marcar {} como PROCESADO en Redis: {}", clave, ex.getMessage());
 		}
 	}
@@ -110,7 +94,7 @@ public class RedisIdempotenciaEventos implements IdempotenciaEventos {
 		try {
 			redis.delete(clave);
 		} catch (DataAccessException ex) {
-			// La clave PROCESANDO expira sola con su ttl corto.
+			// PROCESANDO expira sola.
 			log.warn("No se pudo liberar {} en Redis: {}", clave, ex.getMessage());
 		}
 	}

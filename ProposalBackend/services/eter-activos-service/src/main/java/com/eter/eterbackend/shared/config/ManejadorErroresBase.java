@@ -35,26 +35,16 @@ import com.eter.eterbackend.shared.security.TenantNoAutorizadoException;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.exc.MismatchedInputException;
 
-/**
- * Base comun de manejo de errores de los cuatro microservicios.
- *
- * Todas las respuestas de error salen como ProblemDetail (RFC 9457) con la misma
- * forma: title, status, detail e instance. Los errores de validacion agregan
- * "errores": [{campo, mensaje}] para que el frontend marque cada campo del formulario.
- *
- * Extiende ResponseEntityExceptionHandler, que ya convierte a ProblemDetail todas
- * las excepciones propias de Spring MVC (405, 415, 404 de ruta, etc.). Aqui se
- * sobreescriben las que necesitan un mensaje en español y sin detalles internos.
- */
+/** Errores comunes de los 4 servicios como ProblemDetail; la validacion agrega "errores". */
 public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandler {
 
 	private static final Logger log = LoggerFactory.getLogger(ManejadorErroresBase.class);
 
 	protected static final String SOLICITUD_INVALIDA = "Solicitud inválida";
 
-	// ---------- 400: validacion de formularios y parametros ----------
+	// 400: validacion
 
-	/** @Valid @RequestBody con errores (Bean Validation). */
+	/** Errores de @Valid @RequestBody. */
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
 			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -64,7 +54,7 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 		return validacion(errores);
 	}
 
-	/** Restricciones sobre @RequestParam / @PathVariable (validacion de metodo). */
+	/** Errores de @RequestParam / @PathVariable. */
 	@Override
 	protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
 			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -79,7 +69,7 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 		return validacion(errores);
 	}
 
-	/** JSON mal escrito, fecha con formato invalido, enum inexistente, etc. */
+	/** JSON mal formado, fecha invalida o enum inexistente. */
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
 			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -101,7 +91,7 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 		return validacion(List.of(error(ex.getParameterName(), "es obligatorio")));
 	}
 
-	/** Parametro de URL con tipo incorrecto: ?tipoMovimiento=X, /{idPrestamo} que no es UUID... */
+	/** Parametro de URL con tipo incorrecto. */
 	@Override
 	protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex,
 			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
@@ -109,10 +99,7 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 		return validacion(List.of(error(campo, mensajeTipo(ex.getRequiredType()))));
 	}
 
-	/**
-	 * IllegalArgumentException que no viene del dominio (librerias, conversiones):
-	 * su mensaje puede traer nombres de clases, asi que no se devuelve al cliente.
-	 */
+	/** IllegalArgumentException de librerias: su mensaje no se expone. */
 	@ExceptionHandler(IllegalArgumentException.class)
 	ResponseEntity<Object> argumentoIlegal(IllegalArgumentException ex) {
 		log.warn("Argumento inválido no controlado: {}", ex.getMessage());
@@ -120,7 +107,7 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 				"La solicitud contiene datos inválidos."));
 	}
 
-	// ---------- 401 / 403: autenticacion y permisos ----------
+	// 401 / 403
 
 	@ExceptionHandler(TenantNoAutorizadoException.class)
 	ResponseEntity<Object> tenant(TenantNoAutorizadoException ex) {
@@ -139,9 +126,9 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 				"Debe enviar un token JWT válido en la cabecera Authorization."));
 	}
 
-	// ---------- 409: choque con la base de datos ----------
+	// 409
 
-	/** Dos peticiones simultaneas que crean lo mismo, o una restriccion SQL violada. */
+	/** Creacion simultanea o restriccion SQL violada. */
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	ResponseEntity<Object> integridad(DataIntegrityViolationException ex) {
 		log.warn("Violación de integridad: {}", ex.getMostSpecificCause().getMessage());
@@ -149,12 +136,9 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 				"La operación entra en conflicto con datos ya registrados."));
 	}
 
-	// ---------- 500: red de seguridad ----------
+	// 500
 
-	/**
-	 * Handler generico: cualquier error que nadie mas atrapo. Se registra completo
-	 * en el log (para el equipo) y al cliente solo se le da un mensaje neutro.
-	 */
+	/** Cualquier otro error: se registra en el log y el cliente recibe un mensaje neutro. */
 	@ExceptionHandler(Exception.class)
 	ResponseEntity<Object> inesperado(Exception ex) {
 		log.error("Error no controlado", ex);
@@ -162,7 +146,7 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 				"Ocurrió un error inesperado. Intente de nuevo más tarde."));
 	}
 
-	// ---------- utilidades ----------
+	// Utilidades
 
 	protected static ProblemDetail problema(HttpStatus estado, String titulo, String detalle) {
 		ProblemDetail problema = ProblemDetail.forStatus(estado);
@@ -176,7 +160,7 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 	}
 
 	private static ResponseEntity<Object> validacion(List<Map<String, String>> recibidos) {
-		// Copia mutable: algunos llamadores pasan List.of(...), que no se puede ordenar.
+		// Copia mutable: List.of(...) no se puede ordenar.
 		List<Map<String, String>> errores = new ArrayList<>(recibidos);
 		errores.sort(Comparator.comparing(e -> e.get("campo")));
 		ProblemDetail problema = problema(HttpStatus.BAD_REQUEST, SOLICITUD_INVALIDA, errores.stream()
@@ -193,7 +177,7 @@ public abstract class ManejadorErroresBase extends ResponseEntityExceptionHandle
 		return error;
 	}
 
-	/** Mensaje entendible segun el tipo esperado, sin nombres de clases Java. */
+	/** Mensaje segun el tipo esperado, sin nombres de clases. */
 	private static String mensajeTipo(Class<?> tipo) {
 		if (tipo == null) {
 			return "tiene un valor inválido";

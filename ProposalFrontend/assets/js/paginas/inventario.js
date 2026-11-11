@@ -1,11 +1,4 @@
-/*
- * ETER · Inventario: kardex de movimientos y actas de asignación.
- *
- * Kardex: api.movimientos() completo, filtrado en el navegador (tipo, placa o
- * descripción, documento). ALTA, BAJA, PRESTAMO y DEVOLUCION los asienta
- * inventario al consumir los eventos de Kafka; el resto se registra a mano.
- * Asignaciones: api.asignaciones() con el resumen del activo.
- */
+// Inventario: kardex de movimientos y asignaciones.
 (function () {
   'use strict';
   const { ui, api, sesion } = ETER;
@@ -14,8 +7,8 @@
   const html = ui.html;
   const $ = (id) => document.getElementById(id);
 
-  // ── Vocabulario del kardex ────────────────────────────────────────────────
-  /** Tipos que inventario registra solo, y el tópico de donde salen. */
+  // Tipos de movimiento
+  /** Tipos que inventario registra solo, con su tópico. */
   const AUTOMATICOS = {
     ALTA: 'eter.activos.eventos.v1',
     BAJA: 'eter.activos.eventos.v1',
@@ -70,10 +63,10 @@
       const u = new URL(location.href);
       fn(u.searchParams);
       history.replaceState(null, '', u);
-    } catch { /* file:// puede no permitir reescribir la URL */ }
+    } catch { /* file:// no lo permite */ }
   }
 
-  /** Lanza BAD_USER_INPUT con los campos que no pasan, igual que el servicio. */
+  /** Valida como el servicio; lanza BAD_USER_INPUT. */
   function validar(reglas) {
     const errores = reglas.filter((r) => !r.ok).map(({ campo, mensaje }) => ({ campo, mensaje }));
     if (errores.length) throw new ETER.ApiError('BAD_USER_INPUT', 'Revisa los campos marcados.', { errores });
@@ -88,16 +81,16 @@
     form.querySelector('[aria-invalid="true"]')?.focus();
   }
 
-  // ── Íconos estáticos del HTML ─────────────────────────────────────────────
+  // Íconos del HTML
   document.querySelectorAll('i[data-icono]').forEach((i) => { i.outerHTML = String(ui.icono(i.dataset.icono)); });
 
-  // ── Permisos ──────────────────────────────────────────────────────────────
+  // Permisos
   const btnMovimiento = $('btn-movimiento');
   const btnAsignacion = $('btn-asignacion');
   ui.soloAdmin(btnMovimiento, btnAsignacion);
   $('solo-lectura').hidden = sesion.esAdmin();
 
-  // ── Pestañas (sincronizadas con ?tab=) ────────────────────────────────────
+  // Pestañas (?tab=)
   const TABS = ['kardex', 'asignaciones'];
   const botonTab = (id) => $(`tab-${id}`);
 
@@ -128,7 +121,7 @@
 
   const contarTab = (id, n) => { document.querySelector(`[data-cuenta="${id}"]`).textContent = n == null ? '' : String(n); };
 
-  // ── Kardex ────────────────────────────────────────────────────────────────
+  // Kardex
   const kardex = { datos: [], cargado: false };
   const filtroK = { q: ui.param('placa') || '', tipo: '', doc: '' };
 
@@ -242,7 +235,7 @@
 
     avisoK.innerHTML = '';
     marcoK.hidden = false;
-    // Folio cronológico: el asiento más antiguo de la vista es el 01, también al paginar.
+    // Folio cronológico: el más antiguo es el 01.
     tablaK.style.counterReset = `folio ${visibles.length + 1 - visibles.indexOf(pagina[0])}`;
     filasK.innerHTML = html`${pagina.map(filaMovimiento)}`;
     pieK.textContent = `${visibles.length} de ${kardex.datos.length} movimientos, del más reciente al más antiguo. El folio numera los asientos de esta vista en orden cronológico.`;
@@ -300,7 +293,7 @@
     conteosK.querySelector(`[data-tipo="${filtroK.tipo}"]`)?.focus();
   });
 
-  // ── Asignaciones ──────────────────────────────────────────────────────────
+  // Asignaciones
   const asig = { datos: [], cargado: false, q: '' };
   const filasA = $('filas-asignaciones');
   const marcoA = $('marco-asignaciones');
@@ -367,14 +360,14 @@
   $('filtros-asignaciones').addEventListener('submit', (ev) => ev.preventDefault());
   $('a-recargar').addEventListener('click', cargarAsignaciones);
 
-  // ── Placas conocidas (datalist y pista bajo el campo) ────────────────────
+  // Placas conocidas
   let activos = null;
   async function cargarActivos() {
     if (activos) return activos;
     try {
       activos = await api.activos();
     } catch {
-      return null; // la pista se queda con el texto base; el servicio valida igual
+      return null; // el servicio valida igual
     }
     $('lista-placas').innerHTML = html`${activos.map((a) => html`<option value="${a.placaInventario}">${a.descripcion} · ${a.codSede}</option>`)}`;
     return activos;
@@ -400,7 +393,7 @@
 
   document.querySelectorAll('[data-cerrar]').forEach((b) => b.addEventListener('click', () => ui.cerrar(b.closest('dialog'))));
 
-  // ── Diálogo: registrar movimiento ─────────────────────────────────────────
+  // Diálogo: registrar movimiento
   const dlgMov = $('dlg-movimiento');
   const formMov = $('form-movimiento');
   const alertaMov = $('alerta-movimiento');
@@ -483,7 +476,7 @@
     }
   });
 
-  // ── Diálogo: nueva asignación ─────────────────────────────────────────────
+  // Diálogo: nueva asignación
   const dlgAsig = $('dlg-asignacion');
   const formAsig = $('form-asignacion');
   const alertaAsig = $('alerta-asignacion');
@@ -552,7 +545,7 @@
     }
   });
 
-  // ── Arranque ──────────────────────────────────────────────────────────────
+  // Arranque
   mostrarTab(ui.param('tab') === 'asignaciones' ? 'asignaciones' : 'kardex');
   cargarKardex();
   cargarAsignaciones();

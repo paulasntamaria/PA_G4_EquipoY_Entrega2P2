@@ -1,9 +1,4 @@
-/*
- * ETER · index.html (dashboard)
- *
- * Cada bloque pide sus datos por separado: si un servicio no responde, solo
- * ese bloque muestra su alerta y el resto del dashboard sigue.
- */
+// Dashboard: cada bloque carga y falla por separado.
 (function () {
   'use strict';
   if (!ETER.ui.montar({ pagina: 'panel' })) return;
@@ -17,12 +12,11 @@
   };
   const plural = (n, uno, varios) => `${ui.fmt.numero(n)} ${n === 1 ? uno : varios}`;
 
-  // ── Franja superior ───────────────────────────────────────────────────────
+  // Franja superior
   const usuario = sesion.usuario() || {};
   const hoy = new Intl.DateTimeFormat('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
   $('bajada').innerHTML = ui.html`NIT <span class="mono">${usuario.nitUniv || '—'}</span> · ${hoy}`;
 
-  /** Estado del sistema según lo que respondió el gateway. */
   function estadoSistema(estado, texto) {
     $('estado-sistema').dataset.estado = estado;
     $('estado-texto').textContent = texto;
@@ -37,11 +31,11 @@
     nota.hidden = false;
   }
 
-  // ── Anillos SVG ───────────────────────────────────────────────────────────
+  // Anillos SVG
   const RADIO = 48;
   const VUELTA = 2 * Math.PI * RADIO;
 
-  /** Tramos de un anillo: [{ fraccion, tono }]. Deja un hueco entre tramos si hay varios. */
+  /** Tramos de un anillo: [{ fraccion, tono }]. */
   function tramos(partes) {
     const hueco = partes.length > 1 ? 2 : 0;
     let recorrido = 0;
@@ -55,7 +49,7 @@
     });
   }
 
-  // ── Cifras (una sola consulta: resumen) ───────────────────────────────────
+  // Cifras
   const ESTADOS = [['ACTIVO', 'ok'], ['MANTENIMIENTO', 'aviso'], ['BAJA', 'neutro']];
   const conteo = (lista) => Object.fromEntries((lista || []).map((x) => [x.estado, x.total]));
 
@@ -67,7 +61,7 @@
       <span class="metrica-nota">${nota}</span>
     </a>`;
 
-  /** Quinta tarjeta: qué parte del registro está en servicio. */
+  /** Tarjeta: parte del registro en servicio. */
   function metricaServicio(enServicio, total) {
     const pct = total ? Math.round((enServicio / total) * 100) : null;
     return ui.html`
@@ -137,7 +131,7 @@
         });
         return;
       }
-      // Orden fijo (el color sigue al estado, no al tamaño); estados nuevos van al final.
+      // Orden fijo: el color sigue al estado.
       const conocidos = ESTADOS.map(([e]) => e);
       const filas = [
         ...ESTADOS.filter(([e]) => datos.some((x) => x.estado === e)).map(([e, tono]) => ({ estado: e, tono, total: datos.find((x) => x.estado === e).total })),
@@ -164,7 +158,7 @@
     }
   }
 
-  // ── Vencidos y por vencer ────────────────────────────────────────────────
+  // Vencidos y por vencer
   function plazo(p) {
     const d = ui.fmt.diasHasta(p.fechaDevolucionPactada);
     if (p.vencido || (d != null && d < 0)) {
@@ -225,8 +219,7 @@
     }
   }
 
-  // ── Últimos movimientos del kardex ───────────────────────────────────────
-  // Estos los registra eter-inventario-service al consumir eventos de Kafka.
+  // Últimos movimientos del kardex
   const AUTOMATICOS = new Set(['ALTA', 'BAJA', 'PRESTAMO', 'DEVOLUCION']);
 
   async function pintarKardex() {
@@ -262,7 +255,7 @@
     }
   }
 
-  // ── Notificaciones recientes ─────────────────────────────────────────────
+  // Notificaciones recientes
   async function pintarAvisos() {
     const caja = $('avisos');
     const nota = $('avisos-nota');

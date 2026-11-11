@@ -1,16 +1,9 @@
-/*
- * ETER · ingresar.html
- *
- * No hay servicio de login: el JWT (HS256) se genera con
- * python tools/generar_token.py y aquí solo se guarda y se valida contra el
- * gateway con la query me. Esta pantalla no lleva riel, así que no llama a
- * ui.montar.
- */
+// Ingreso: guarda el JWT (de tools/generar_token.py) y lo valida con el gateway.
 (function () {
   'use strict';
   const { ui, api, sesion } = ETER;
 
-  // Solo se vuelve a páginas de la app (nada de URLs absolutas ni rutas raras).
+  // Solo redirige a páginas de la app.
   const PAGINA_APP = /^(?:index|activos|activo|prestamos|inventario|notificaciones)\.html(?:[?#][^\s\\]*)?$/;
   const destino = () => {
     const v = ui.param('volver');
@@ -40,7 +33,7 @@
   campoGateway.value = sesion.gateway;
   campoGateway.placeholder = 'http://localhost:4000/graphql';
 
-  // ── Aviso de llegada ──────────────────────────────────────────────────────
+  // Aviso de llegada
   if (motivo === 'vencida') {
     aviso.innerHTML = ui.html`
       <div class="alerta alerta--aviso" role="status">
@@ -69,7 +62,7 @@
     campoToken.value = sesion.token || '';
   }
 
-  // ── Lectura en vivo de los claims ─────────────────────────────────────────
+  // Claims en vivo
   const limpio = (texto) => String(texto || '').trim().replace(/^Bearer\s+/i, '');
   const venceEn = (c) => (c && c.exp ? new Date(c.exp * 1000) : null);
   const esAdmin = (roles) => roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
@@ -125,7 +118,7 @@
   campoGateway.addEventListener('input', () => ui.limpiarErrores(form));
   leerToken();
 
-  // ── Ingresar ──────────────────────────────────────────────────────────────
+  // Ingresar
   function validar(token, url) {
     const errores = [];
     if (!token) {
@@ -164,7 +157,7 @@
       await api.me();
       location.replace(destino());
     } catch (e) {
-      // No se usa ui.error: en UNAUTHENTICATED redirigiría a esta misma página.
+      // ui.error redirigiría a esta misma página.
       sesion.cerrar();
       aviso.innerHTML = e && e.code === 'UNAUTHENTICATED'
         ? ui.html`

@@ -38,8 +38,7 @@ public class NotificacionService implements
 				.orElseThrow(() -> new NotificacionNoEncontradaException(
 						"No existe la notificación %s.".formatted(idNotificacion)));
 
-		// Un usuario solo puede marcar lo que es suyo; si no, se responde 404
-		// para no revelar que la notificacion existe.
+		// Si no es suya, 404 para no revelar que existe.
 		if (!notificacion.destinatarioEmail().equalsIgnoreCase(email)) {
 			throw new NotificacionNoEncontradaException(
 					"No existe la notificación %s.".formatted(idNotificacion));

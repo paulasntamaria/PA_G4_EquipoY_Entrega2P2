@@ -3,11 +3,7 @@ package com.eter.eterbackend.shared.events.domain;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-/**
- * Evento de negocio que se guarda en la MISMA transaccion que el cambio de
- * datos. Ese es todo el truco del patron Outbox: si la transaccion falla, el
- * evento tampoco queda, y nunca se desincronizan la base y Kafka.
- */
+/** Evento que se guarda en la misma transaccion que el cambio de datos (patron Outbox). */
 public record EventoOutbox(
 		UUID eventId,
 		String dedupKey,

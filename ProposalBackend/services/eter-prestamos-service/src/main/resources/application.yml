@@ -34,12 +34,11 @@ eter:
   jwt:
     secret: "${ETER_JWT_SECRET:eter-jwt-secret-development-only-CHANGE-IN-PRODUCTION-9f4a8c7e}"
   security:
-    # Roles que pueden crear, modificar o eliminar (POST/PUT/PATCH/DELETE).
-    # Las consultas (GET) solo requieren estar autenticado.
+    # Roles para POST/PUT/PATCH/DELETE; GET solo requiere autenticacion.
     roles-escritura: "${ETER_ROLES_ESCRITURA:ADMIN}"
   services:
     activos-base-url: "${ETER_ACTIVOS_BASE_URL:http://localhost:8087}"
-    # Tiempo maximo de espera a activos-service antes de responder 503.
+    # Espera maxima a activos-service antes de responder 503.
     activos-timeout-ms: "${ETER_ACTIVOS_TIMEOUT_MS:3000}"
   kafka:
     topic-prestamos: "${ETER_KAFKA_TOPIC_PRESTAMOS:eter.prestamos.eventos.v1}"

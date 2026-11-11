@@ -1,21 +1,10 @@
-/*
- * ETER · armazon de la aplicacion. Expone window.ETER.ui.
- *
- * Cada pagina, al empezar:   if (!ETER.ui.montar({ pagina: 'activos' })) return;
- * montar() revisa la sesion, dibuja el menu lateral y la barra superior (ruta,
- * tema, campana y menu de usuario), pone el icono del modulo en .cabecera y
- * actualiza el contador de notificaciones.
- *
- * Para HTML dinamico use ui.html`...`: escapa todo lo interpolado salvo lo que
- * ya sea ui.html / ui.crudo / un arreglo de ellos. Nunca concatene datos del
- * servidor en innerHTML sin pasar por ui.html o ui.esc.
- */
+// Armazón de la aplicación (ETER.ui). Para HTML con datos use ui.html o ui.esc.
 (function () {
   'use strict';
   const ETER = window.ETER;
   const { sesion, api } = ETER;
 
-  // ── HTML seguro ───────────────────────────────────────────────────────────
+  // HTML seguro
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   class Crudo { constructor(h) { this.h = h; } toString() { return this.h; } }
   const crudo = (h) => new Crudo(String(h ?? ''));
@@ -26,7 +15,7 @@
     return new Crudo(out);
   }
 
-  // ── Iconos (trazo 1.75, 24×24) ────────────────────────────────────────────
+  // Iconos
   const ICONOS = {
     panel: '<rect x="3.5" y="3.5" width="7" height="8" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.5"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.5"/><rect x="3.5" y="14.5" width="7" height="6" rx="1.5"/>',
     activos: '<path d="M20.5 13.3 13.3 20.5a1.9 1.9 0 0 1-2.7 0L3.5 13.4V3.5h9.9l7.1 7.1a1.9 1.9 0 0 1 0 2.7z"/><circle cx="8" cy="8" r="1.4"/>',
@@ -66,14 +55,13 @@
   };
   const icono = (nombre, clase = '') =>
     crudo(`<svg class="icono ${clase}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONOS[nombre] || ''}</svg>`);
-  /** Logo hexagonal de ETER. */
   const logo = () => crudo(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" focusable="false">
     <polygon points="12,1.5 22,7 22,17 12,22.5 2,17 2,7" stroke-width="1.5"/>
     <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>
     <path stroke-width="1.2" d="M12 9.5V6M14.2 10.5l3.3-2M14.2 13.5l3.3 2M12 14.5V18M9.8 13.5l-3.3 2M9.8 10.5l-3.3-2"/>
   </svg>`);
 
-  // ── Formato ───────────────────────────────────────────────────────────────
+  // Formato
   const aFecha = (iso) => (iso ? new Date(iso) : null);
   const valida = (d) => d && !Number.isNaN(d.getTime());
   const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
@@ -85,7 +73,7 @@
     fecha(iso) { const d = aFecha(iso); return valida(d) ? `${d.getDate()} ${MESES[d.getMonth()]} ${d.getFullYear()}` : '—'; },
     /** "28 oct 2026, 08:00" */
     fechaHora(iso) { const d = aFecha(iso); return valida(d) ? `${fmt.fecha(iso)}, ${dos(d.getHours())}:${dos(d.getMinutes())}` : '—'; },
-    /** "2026-10-28 08:00": para columnas de tablas y kardex (con .mono). */
+    /** "2026-10-28 08:00" */
     registro(iso) { const d = aFecha(iso); return valida(d) ? `${d.getFullYear()}-${dos(d.getMonth() + 1)}-${dos(d.getDate())} ${dos(d.getHours())}:${dos(d.getMinutes())}` : '—'; },
     /** "hace 5 min", "ayer", "en 3 días" */
     relativa(iso) {
@@ -112,7 +100,7 @@
     numero: (n) => (n == null ? '—' : numero.format(Number(n))),
   };
 
-  // ── Vocabulario del dominio ───────────────────────────────────────────────
+  // Dominio
   const ESTADO_ACTIVO = { ACTIVO: ['Activo', 'ok'], MANTENIMIENTO: ['En mantenimiento', 'aviso'], BAJA: ['De baja', 'neutro'] };
   const ESTADO_PRESTAMO = { VIGENTE: ['Vigente', 'info'], DEVUELTO: ['Devuelto', 'ok'], CANCELADO: ['Cancelado', 'neutro'] };
   const TIPO_MOVIMIENTO = {
@@ -139,7 +127,7 @@
     return html`<span class="sello sello--neutro">${p.estado}</span>`;
   };
 
-  // Código de barras decorativo derivado del texto (cada placa tiene el suyo).
+  // Código de barras decorativo.
   function barras(texto) {
     const seq = [1, 1, 1, 1];
     [...String(texto)].forEach((ch, i) => {
@@ -157,7 +145,7 @@
     return `linear-gradient(90deg, ${tramos.join(', ')})`;
   }
 
-  /** Etiqueta de inventario. opciones: { sm, sede } */
+  /** Etiqueta de inventario. */
   const placa = (codigo, { sm = false, sede = '' } = {}) => html`
     <div class="placa${sm ? ' placa--sm' : ''}" role="img" aria-label="Placa de inventario ${codigo}">
       <span class="placa-titular">Patrimonio · ETER</span>
@@ -170,7 +158,7 @@
   const urlActivo = (p) => `activo.html?placa=${encodeURIComponent(p)}`;
   const enlaceActivo = (p) => codigo(p, urlActivo(p));
 
-  // ── Errores ───────────────────────────────────────────────────────────────
+  // Errores
   function mensajeError(err) {
     const m = err?.message || 'Error desconocido.';
     switch (err?.code) {
@@ -184,17 +172,14 @@
       default: return { titulo: 'Algo falló', detalle: m };
     }
   }
-  /** Caja .alerta con el error (incluye la lista de campos si la hay). */
+  /** Caja .alerta con el error. */
   function alerta(err) {
     const { titulo, detalle } = mensajeError(err);
     return html`<div class="alerta" role="alert"><strong>${titulo}</strong><span>${detalle}</span>${
       err?.errores?.length ? html`<ul>${err.errores.map((e) => html`<li><span class="mono">${e.campo}</span>: ${e.mensaje}</li>`)}</ul>` : ''
     }</div>`;
   }
-  /**
-   * Maneja un error de la API. UNAUTHENTICATED cierra la sesión y lleva a
-   * ingresar.html. Con { en: elemento } pinta la alerta ahí; si no, toast.
-   */
+  /** Muestra el error; si la sesión expiró, vuelve a ingresar.html. */
   function error(err, { en } = {}) {
     if (!(err instanceof ETER.ApiError)) console.error(err);
     if (err?.code === 'UNAUTHENTICATED' && !sesion.demo) {
@@ -206,7 +191,7 @@
     const { titulo, detalle } = mensajeError(err);
     toast(`${titulo}. ${detalle}`, { tipo: 'error' });
   }
-  /** Marca en el formulario los campos de err.errores ([{campo, mensaje}]). Devuelve cuántos encontró. */
+  /** Marca los campos con error y devuelve cuántos encontró. */
   function marcarErrores(form, errores = []) {
     limpiarErrores(form);
     let n = 0;
@@ -228,7 +213,7 @@
     form.querySelectorAll('[aria-invalid]').forEach((x) => x.removeAttribute('aria-invalid'));
   }
 
-  // ── Avisos flotantes ──────────────────────────────────────────────────────
+  // Avisos flotantes
   function toast(texto, { tipo = 'info', ms = 4500 } = {}) {
     let caja = document.getElementById('toasts');
     if (!caja) {
@@ -245,10 +230,10 @@
     setTimeout(() => t.remove(), ms);
   }
 
-  // ── Diálogos ──────────────────────────────────────────────────────────────
+  // Diálogos
   const abrir = (dlg) => { dlg.showModal(); dlg.querySelector('[autofocus], input, select, textarea')?.focus(); };
   const cerrar = (dlg) => dlg.close();
-  /** Confirmación propia (el navegador no muestra confirm()). Devuelve Promise<boolean>. */
+  /** Confirmación propia. Devuelve Promise<boolean>. */
   function confirmar({ titulo, texto, accion = 'Confirmar', peligro = false }) {
     return new Promise((resolver) => {
       const dlg = document.createElement('dialog');
@@ -270,7 +255,7 @@
     });
   }
 
-  // ── Formularios ───────────────────────────────────────────────────────────
+  // Formularios
   /** FormData -> objeto con strings recortados; los vacíos quedan fuera. */
   function datosForm(form) {
     const o = {};
@@ -284,7 +269,7 @@
   const aLocalDateTime = (v) => (!v ? v : v.length === 16 ? `${v}:00` : v);
   /** "2026-10-28T08:00:00" -> valor para <input type="datetime-local">. */
   const aInputLocal = (iso) => (iso ? String(iso).slice(0, 16) : '');
-  /** Fecha para un input datetime-local: hoy + dias, a la hora indicada (o la actual). */
+  /** Hoy + dias, a la hora indicada. */
   function fechaInput(dias = 0, hora, minuto = 0) {
     const d = new Date();
     d.setDate(d.getDate() + dias);
@@ -296,8 +281,7 @@
     boton.setAttribute('aria-busy', String(si));
   };
 
-  // ── Estados de carga y vacío ──────────────────────────────────────────────
-  /** Filas de esqueleto para el <tbody> de una tabla de n columnas. */
+  // Carga y vacío
   const cargandoFilas = (columnas, filas = 5) =>
     crudo(Array.from({ length: filas }, (_, i) =>
       `<tr aria-hidden="true">${Array.from({ length: columnas }, (_, j) =>
@@ -305,15 +289,14 @@
   const cargandoBloque = (lineas = 3) =>
     crudo(`<div class="pila" aria-hidden="true">${Array.from({ length: lineas }, (_, i) =>
       `<span class="esqueleto" style="width:${92 - i * 17}%"></span>`).join('')}</div>`);
-  /** Estado vacío. accion: ui.html del botón o enlace, opcional. */
   const vacio = ({ titulo, texto, accion }) =>
     html`<div class="vacio"><p class="vacio-titulo">${titulo}</p><p>${texto}</p>${accion || ''}</div>`;
 
-  // ── Varios ────────────────────────────────────────────────────────────────
+  // Varios
   const param = (nombre) => new URLSearchParams(location.search).get(nombre);
   const demorar = (fn, ms = 250) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const SIN_PERMISO = 'Tu rol no permite esta operación. Necesitas el rol ADMIN.';
-  /** Deshabilita los botones (o enlaces .boton) de escritura si el usuario no es ADMIN. */
+  /** Deshabilita los botones de escritura si el usuario no es ADMIN. */
   function soloAdmin(...botones) {
     if (sesion.esAdmin()) return;
     botones.flat().filter(Boolean).forEach((b) => {
@@ -327,20 +310,14 @@
     });
   }
 
-  // ── Paginación en el cliente ──────────────────────────────────────────────
-  /**
-   * Controles de paginación dentro de `caja`.
-   *   const pag = ui.paginador(caja, { alCambiar: pintar });
-   *   const visibles = pag.cortar(lista);   // recorta y dibuja los controles
-   * Si cambia el largo de la lista (un filtro, por ejemplo) vuelve a la página 1.
-   * alCambiar se llama al pasar de página o cambiar el tamaño.
-   */
+  // Paginación
+  /** Paginación en el cliente; pag.cortar(lista) devuelve la página visible. */
   function paginador(caja, { tamano = 10, tamanos = [10, 25, 50], alCambiar }) {
     let pagina = 1;
     let porPagina = tamano;
     let total = 0;
 
-    /** Números a mostrar: primera, última y vecinas de la actual; null = puntos. */
+    /** Páginas a mostrar; null = puntos. */
     function numeros(paginas) {
       const visibles = [...new Set([1, paginas, pagina - 1, pagina, pagina + 1])]
         .filter((n) => n >= 1 && n <= paginas).sort((a, b) => a - b);
@@ -395,7 +372,7 @@
     };
   }
 
-  // ── Armazón ───────────────────────────────────────────────────────────────
+  // Armazón
   const MENU = [
     { id: 'inicio', titulo: 'Inicio', icono: 'casa', items: [['panel', 'index.html', 'Dashboard', 'panel']] },
     {
@@ -413,7 +390,7 @@
   const raiz = document.documentElement;
   const preferencia = {
     leer(clave) { try { return localStorage.getItem(clave); } catch { return null; } },
-    guardar(clave, valor) { try { localStorage.setItem(clave, valor); } catch { /* sin almacenamiento: dura hasta recargar */ } },
+    guardar(clave, valor) { try { localStorage.setItem(clave, valor); } catch { /* sin almacenamiento */ } },
   };
   const esMovil = () => window.matchMedia('(max-width: 900px)').matches;
 
@@ -433,7 +410,6 @@
     } catch { contadores.forEach((c) => { c.hidden = true; }); }
   }
 
-  /** Marca la entrada del menú que corresponde a la vista actual. */
   function marcarNav(id) {
     document.querySelectorAll('.nav a[data-pagina]').forEach((a) => {
       if (a.dataset.pagina === id) a.setAttribute('aria-current', 'page');
@@ -526,7 +502,7 @@
     velo.className = 'velo';
     barra.after(velo);
 
-    // Hamburguesa: colapsa el menú en escritorio y abre el cajón en móvil.
+    // Escritorio: colapsa el menú; móvil: abre el cajón.
     const btnMenu = barra.querySelector('[data-menu]');
     const pintarMenu = () => {
       const movil = esMovil();
@@ -597,11 +573,7 @@
     });
   }
 
-  /**
-   * La ruta vive en .folio dentro de .cabecera y se muestra en la barra superior.
-   * Algunas páginas reescriben .cabecera (activo.js); el observador repone el
-   * ícono del módulo y vuelve a copiar la ruta cada vez.
-   */
+  /** Mantiene la ruta y el ícono aunque la página reescriba .cabecera. */
   function vigilarCabecera(pagina) {
     const migas = document.getElementById('migas');
     const cabecera = document.querySelector('.cabecera');
@@ -623,10 +595,7 @@
     new MutationObserver(sincronizar).observe(cabecera, { childList: true });
   }
 
-  /**
-   * Dibuja el armazón. Devuelve false si no hay sesión (y redirige a ingresar.html).
-   * ?demo=1 en la URL abre la página directamente en modo demostración.
-   */
+  /** Dibuja el armazón; devuelve false si no hay sesión. ?demo=1 abre en modo demo. */
   function montar({ pagina }) {
     if (param('demo') === '1') sesion.iniciarDemo();
     if (!sesion.activa()) {

@@ -23,11 +23,6 @@ import org.springframework.kafka.support.SendResult;
 import com.eter.eterbackend.shared.events.domain.EventoOutbox;
 import com.eter.eterbackend.shared.events.domain.EventoOutboxRepository;
 
-/**
- * Pruebas del publicador del Outbox. La principal cubre el error corregido en
- * esta entrega: antes, un fallo de Kafka interrumpia el hilo y hacia fallar a
- * todos los eventos siguientes del lote.
- */
 @DisplayName("OutboxPublisher (productor Kafka)")
 class OutboxPublisherTest {
 

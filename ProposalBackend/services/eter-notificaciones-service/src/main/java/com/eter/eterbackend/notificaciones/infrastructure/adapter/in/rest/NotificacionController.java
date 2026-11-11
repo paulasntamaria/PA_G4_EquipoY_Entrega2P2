@@ -25,11 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
-/**
- * Bandeja del usuario autenticado.
- * Como dice el contrato, ni el tenant ni el destinatario llegan por parametro:
- * los dos se sacan del JWT.
- */
+/** Bandeja del usuario; tenant y destinatario salen del JWT. */
 @Tag(name = "Notificaciones")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
@@ -53,7 +49,7 @@ public class NotificacionController {
 	@GetMapping
 	public ResponseEntity<NotificacionDtos.NotificacionPageResponse> listar(
 			@RequestParam(value = "page", defaultValue = "0") @Min(0) int page,
-			// Tope de 100 por pagina: evita que un cliente traiga toda la bandeja de una vez.
+			// Maximo 100 por pagina.
 			@RequestParam(value = "size", defaultValue = "20") @Min(1) @Max(100) int size,
 			@RequestParam(value = "soloNoLeidas", defaultValue = "false") boolean soloNoLeidas) {
 

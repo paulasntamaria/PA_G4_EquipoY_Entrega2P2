@@ -1,22 +1,14 @@
 <#
 .SYNOPSIS
-  Simulador de eventos Kafka para probar los consumidores de ETER.
+  Simula eventos Kafka para probar los consumidores. Ejecutar desde ProposalBackend.
 
 .DESCRIPTION
-  -Tipo duplicado  Busca en el topico un evento YA publicado (por eventId o por
-                   texto) y lo vuelve a publicar identico y con la misma key.
-                   Simula la entrega duplicada de Kafka: los consumidores deben
-                   ignorarlo (Redis) y no crear nada nuevo.
-  -Tipo invalido   Publica un mensaje que no es JSON. Debe ir al .DLT sin reintentos.
-  -Tipo sin-id     Publica un JSON sin eventId. Tambien debe ir al .DLT.
-
-  Se ejecuta desde la carpeta ProposalBackend con Docker Compose levantado.
+  -Tipo duplicado  Re-publica un evento ya enviado; los consumidores deben ignorarlo.
+  -Tipo invalido   Publica un mensaje que no es JSON; debe ir al .DLT.
+  -Tipo sin-id     Publica un JSON sin eventId; debe ir al .DLT.
 
 .EXAMPLE
   .\tools\simular_evento.ps1 -Tipo duplicado -Buscar PRESTAMO_CREADO
-  .\tools\simular_evento.ps1 -Tipo duplicado -Buscar 3f0f6a3e-6c55-4a8e-9a57-2d0f6f1d6f10
-  .\tools\simular_evento.ps1 -Tipo invalido
-  .\tools\simular_evento.ps1 -Tipo sin-id -Topico eter.activos.eventos.v1
 #>
 param(
 	[Parameter(Mandatory = $true)][ValidateSet("duplicado", "invalido", "sin-id")][string]$Tipo,
@@ -27,8 +19,7 @@ param(
 $ErrorActionPreference = "Continue"
 $kafka = "/opt/kafka/bin"
 
-# El mensaje viaja en base64 como argumento: asi PowerShell 5.1 no le cambia la
-# codificacion, no le agrega BOM y no le quita las comillas al JSON.
+# El mensaje va en base64 para que PowerShell 5.1 no altere el JSON.
 function Publicar([string]$key, [string]$valor) {
 	$b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes("$key|$valor"))
 	docker exec eter-kafka sh -c "echo $b64 | base64 -d | $kafka/kafka-console-producer.sh --bootstrap-server localhost:19092 --topic $Topico --property parse.key=true --property key.separator='|'"

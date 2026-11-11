@@ -15,7 +15,7 @@ import com.eter.eterbackend.activos.domain.repository.MovimientoInventarioReposi
 public class MovimientoInventarioService implements CrearMovimientoInventarioUseCase, ListarMovimientosUseCase,
 		RegistrarMovimientoDesdeEventoUseCase {
 
-	/** Prefijo de idempotency_key para los movimientos que nacen de un evento Kafka. */
+	/** Prefijo de la clave de idempotencia de los movimientos que vienen de eventos. */
 	public static final String CLAVE_EVENTO = "evt:";
 
 	private final MovimientoInventarioRepository movimientoInventarioRepository;
@@ -31,9 +31,7 @@ public class MovimientoInventarioService implements CrearMovimientoInventarioUse
 	public MovimientoInventario crear(CrearMovimientoInventarioUseCase.Command command) {
 		Objects.requireNonNull(command, "El comando de creación no puede ser nulo.");
 
-		// Idempotencia del POST: si el cliente reintenta con la misma Idempotency-Key
-		// se devuelve el movimiento original y no se registra otro. Si dos reintentos
-		// llegan a la vez, el indice uq_movimiento_idempotency_key rechaza el segundo (409).
+		// Misma Idempotency-Key: se devuelve el movimiento original.
 		String clave = command.claveIdempotencia();
 		if (clave != null) {
 			var existente = movimientoInventarioRepository.findByClaveIdempotencia(command.nitUniv(), clave);
@@ -53,12 +51,7 @@ public class MovimientoInventarioService implements CrearMovimientoInventarioUse
 				command.tipoMovimiento(), command.fechaMovimiento(), command.numDocumento()), clave);
 	}
 
-	/**
-	 * Aqui no se consulta a activos-service: el evento ya viene de un servicio que
-	 * valido el activo, y el consumidor no tiene un JWT de usuario para reenviar.
-	 * La clave de idempotencia es "evt:" + eventId, asi que el mismo evento nunca
-	 * produce dos movimientos aunque Kafka lo entregue dos veces.
-	 */
+	/** Movimiento desde un evento; la clave "evt:" + eventId evita duplicados. */
 	@Override
 	public boolean registrar(RegistrarMovimientoDesdeEventoUseCase.Command command) {
 		Objects.requireNonNull(command, "El comando del evento no puede ser nulo.");

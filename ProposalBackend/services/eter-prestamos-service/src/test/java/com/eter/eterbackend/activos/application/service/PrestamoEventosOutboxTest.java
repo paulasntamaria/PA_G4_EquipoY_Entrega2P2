@@ -25,10 +25,6 @@ import com.eter.eterbackend.shared.activos.ActivoExistencePort;
 import com.eter.eterbackend.shared.events.domain.EventoOutbox;
 import com.eter.eterbackend.shared.events.domain.EventoOutboxRepository;
 
-/**
- * Comprueba que cada caso de uso deja en el Outbox el evento que luego
- * consumen inventario y notificaciones, con el formato documentado.
- */
 @DisplayName("PrestamoTemporalService -> eventos en el Outbox")
 class PrestamoEventosOutboxTest {
 

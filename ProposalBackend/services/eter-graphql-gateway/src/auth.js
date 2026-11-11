@@ -2,11 +2,7 @@ import jwt from 'jsonwebtoken';
 import { GraphQLError } from 'graphql';
 import { config } from './config.js';
 
-/**
- * Valida el JWT (HS256, mismo secreto que los microservicios) y devuelve el
- * usuario. El token original se reenvia tal cual: cada microservicio sigue
- * aplicando sus propias reglas de rol y tenant.
- */
+/** Valida el JWT y devuelve el usuario; el token se reenvia tal cual a los servicios. */
 export function autenticar(cabecera) {
   if (!cabecera?.startsWith('Bearer ')) return null;
   const token = cabecera.slice(7).trim();

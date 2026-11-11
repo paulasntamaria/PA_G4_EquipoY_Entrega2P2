@@ -1,10 +1,6 @@
-/*
- * ETER · Préstamos (prestamos.html)
- * Franja de cifras compacta, calendario de vigentes y detalles del registro.
- * Solo tokens de eter.css.
- */
+/* Préstamos */
 
-/* ── Franja de cifras: número a la izquierda, etiqueta y nota a la derecha ── */
+/* Cifras */
 .cifras--franja { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
 .cifras--franja .cifra {
   grid-template-columns: auto minmax(0, 1fr);
@@ -15,7 +11,7 @@
 .cifras--franja .cifra-etiqueta { align-self: end; }
 .cifras--franja .cifra-nota { align-self: start; line-height: 1.35; }
 
-/* ── Calendario de vigentes ───────────────────────────────────────────────── */
+/* Calendario de vigentes */
 .cal-hoja { overflow: hidden; }
 .cal-hoja .vacio { border: 0; border-radius: 0; }
 
@@ -38,7 +34,7 @@
 .cal-dia--lunes { border-left-color: var(--regla-2); }
 .cal-dia--hoy { background: color-mix(in srgb, var(--primario-tenue) 55%, transparent); }
 
-/* Línea de hoy con su rótulo al pie */
+/* Línea de hoy */
 .cal-hoy {
   position: absolute; top: 0; bottom: 0; z-index: 2; width: 0;
   border-left: 1px solid var(--regla); margin-left: -1px; pointer-events: none;
@@ -53,7 +49,7 @@
 .cal-hoy--izq::after { translate: 0 0; }
 .cal-hoy--der::after { translate: -100% 0; }
 
-/* Cabecera fija: meses y números de día */
+/* Cabecera: meses y días */
 .cal-cabeza { position: sticky; top: 0; z-index: 4; background: var(--hoja-2); border-bottom: 1px solid var(--regla-2); }
 .cal-esquina {
   position: sticky; left: 0; z-index: 3;
@@ -78,7 +74,7 @@
 .cal-num--lunes { color: var(--tinta); font-weight: 600; }
 .cal-num--hoy b { background: var(--tinta); color: var(--hoja); font-weight: 600; }
 
-/* Filas: una por préstamo vigente */
+/* Una fila por préstamo vigente */
 .cal-filas { list-style: none; margin: 0; padding: 0; }
 .cal-fila { border-bottom: 1px solid var(--regla); }
 .cal-etiqueta {
@@ -120,8 +116,7 @@
 .leyenda .ley--mora { background: var(--peligro); }
 .leyenda .ley--hoy { width: 2px; height: 12px; background: var(--tinta); }
 
-/* ── Registro ─────────────────────────────────────────────────────────────── */
-/* Hijos de .seccion (rejilla): sin esto toman el ancho mínimo de la tabla y desbordan la página. */
+/* Registro: evita que la tabla desborde la página */
 #registro, #calendario { min-width: 0; }
 .conteo { margin-left: auto; align-self: center; font-size: var(--t-xs); color: var(--tinta-3); }
 .segmentos .cuenta--mora { color: var(--peligro); font-weight: 600; }
@@ -142,7 +137,7 @@
 
 .reintentar { margin-top: 10px; }
 
-/* ── Diálogos ─────────────────────────────────────────────────────────────── */
+/* Diálogos */
 .hueco:empty { display: none; }
 .entrada[aria-invalid="true"] { border-color: var(--peligro); }
 .ayuda--error { color: var(--peligro); }
@@ -169,7 +164,7 @@
   font-size: var(--t-xs); color: var(--tinta-3);
 }
 
-/* ── Móvil ────────────────────────────────────────────────────────────────── */
+/* Móvil */
 @media (max-width: 560px) {
   .cal { --cal-et: 118px; --cal-dia-min: 20px; }
   .cal-etiqueta, .cal-esquina { padding-left: 10px; padding-right: 10px; }

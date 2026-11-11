@@ -1,13 +1,6 @@
 package com.eter.eterbackend.activos.infrastructure.adapter.in.rest.dto;
 
-/**
- * Expresiones regulares y mensajes de formato de los campos de entrada.
- * Se usan con @Pattern en los DTO y en los @PathVariable / @RequestParam, asi
- * todos los endpoints validan un campo de la misma forma.
- *
- * Ademas de dar mensajes claros, evitan que lleguen comillas, espacios o
- * caracteres de control a la base de datos y a los eventos JSON del Outbox.
- */
+/** Formatos (regex) y mensajes de los campos de entrada. */
 public final class FormatosCampos {
 
 	private FormatosCampos() {

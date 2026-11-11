@@ -34,8 +34,7 @@ eter:
   jwt:
     secret: "${ETER_JWT_SECRET:eter-jwt-secret-development-only-CHANGE-IN-PRODUCTION-9f4a8c7e}"
   security:
-    # Roles que pueden crear, modificar o eliminar (POST/PUT/PATCH/DELETE).
-    # Las consultas (GET) solo requieren estar autenticado.
+    # Roles para POST/PUT/PATCH/DELETE; GET solo requiere autenticacion.
     roles-escritura: "${ETER_ROLES_ESCRITURA:ADMIN}"
   kafka:
     topic-activos: "${ETER_KAFKA_TOPIC_ACTIVOS:eter.activos.eventos.v1}"

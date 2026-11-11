@@ -15,17 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Adaptador de entrada por Kafka. Escucha el topico de eventos de prestamos y
- * convierte cada evento en una notificacion de la bandeja.
- *
- * Es un adaptador, asi que aqui solo se traduce el mensaje: la decision de si
- * se guarda o no la toma el caso de uso.
- *
- * Idempotencia en dos niveles:
- *  1. Redis (IdempotenciaEventos): si el eventId ya se proceso, ni se toca la base.
- *  2. PostgreSQL: UNIQUE(event_id, destinatario_email), por si Redis no esta.
- */
+/** Convierte los eventos de prestamos en notificaciones. */
 @Component
 public class NotificacionEventConsumer {
 
@@ -41,11 +31,7 @@ public class NotificacionEventConsumer {
 		this.idempotencia = idempotencia;
 	}
 
-	/**
-	 * Los errores NO se tragan aqui: se relanzan y los maneja KafkaErrorConfig
-	 * (reintento si es transitorio, DLT si el mensaje es invalido). Asi un fallo
-	 * momentaneo de la base de datos no hace perder el evento.
-	 */
+	/** Los errores se relanzan a KafkaErrorConfig para no perder el evento. */
 	@KafkaListener(topics = "${eter.kafka.topic-prestamos}")
 	public void consumir(ConsumerRecord<String, String> registro) {
 		JsonNode sobre = leer(registro.value());
@@ -88,8 +74,7 @@ public class NotificacionEventConsumer {
 						command.eventId());
 			}
 		} catch (DataIntegrityViolationException ex) {
-			// Dos entregas del mismo evento llegaron a la vez y la otra ya inserto:
-			// la restriccion UNIQUE(event_id, destinatario_email) hizo su trabajo.
+			// Entrega simultanea: el UNIQUE frena la segunda.
 			log.info("Evento {} duplicado frenado por UNIQUE(event_id, destinatario_email).", command.eventId());
 		}
 	}

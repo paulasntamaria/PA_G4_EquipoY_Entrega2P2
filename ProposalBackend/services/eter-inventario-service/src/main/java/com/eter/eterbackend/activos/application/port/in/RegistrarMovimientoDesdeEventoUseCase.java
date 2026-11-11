@@ -4,11 +4,7 @@ import java.time.LocalDateTime;
 
 import com.eter.eterbackend.activos.domain.model.TipoMovimiento;
 
-/**
- * Lo invoca el consumidor de Kafka: un hecho que ocurrio en otro microservicio
- * (prestamo creado, devolucion, alta o baja del activo) deja su huella en el
- * kardex de inventario sin que nadie tenga que registrarlo a mano.
- */
+/** Registra en el kardex el movimiento de un evento de Kafka. */
 public interface RegistrarMovimientoDesdeEventoUseCase {
 
 	record Command(
@@ -20,6 +16,6 @@ public interface RegistrarMovimientoDesdeEventoUseCase {
 			String numDocumento) {
 	}
 
-	/** @return false si ese evento ya habia generado su movimiento (consumidor idempotente). */
+	/** @return false si el evento ya habia generado su movimiento. */
 	boolean registrar(Command command);
 }

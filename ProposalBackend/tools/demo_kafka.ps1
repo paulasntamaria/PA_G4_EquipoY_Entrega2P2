@@ -1,22 +1,13 @@
 <#
 .SYNOPSIS
-  Demostracion completa del flujo Kafka de ETER (Entrega 2P2). Cada paso imprime
-  un titulo "EVIDENCIA N" para tomar el pantallazo del PDF.
-
-.DESCRIPTION
-  Requisitos: Docker Compose levantado (docker compose up -d --build, desde
-  infrastructure) y Python para generar el JWT. Se ejecuta desde ProposalBackend:
-
-      powershell -ExecutionPolicy Bypass -File tools\demo_kafka.ps1
-
-  Usa una placa nueva en cada corrida, asi que se puede repetir sin limpiar nada.
+  Demostracion del flujo Kafka de ETER. Ejecutar desde ProposalBackend con Docker Compose levantado.
 
 .PARAMETER SinRedisCaido
-  Omite la prueba de apagar Redis (evidencia 9).
+  Omite la prueba de apagar Redis.
 #>
 param([switch]$SinRedisCaido)
 
-# Continue: en PowerShell 5.1 "Stop" convierte los avisos de docker/kafka (stderr) en errores.
+# En PowerShell 5.1 "Stop" convierte el stderr de docker en errores.
 $ErrorActionPreference = "Continue"
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
 
@@ -25,7 +16,7 @@ $placa = "AF-DEMO-" + (Get-Date -Format "MMddHHmmss")
 $kafka = "/opt/kafka/bin"
 $raiz = Split-Path -Parent $PSScriptRoot
 
-# --- utilidades ---------------------------------------------------------------
+# Utilidades
 function Titulo([string]$texto) {
 	Write-Host ""
 	Write-Host ("=" * 78) -ForegroundColor DarkGreen
@@ -34,11 +25,10 @@ function Titulo([string]$texto) {
 }
 function Nota([string]$texto) { Write-Host $texto -ForegroundColor Cyan }
 
-# Imprime lo que reciba en orden (sin que PowerShell lo reordene al formatear).
+# Imprime en orden.
 function Ver { $input | Out-String -Width 220 | ForEach-Object { $_.TrimEnd() } | Write-Host }
 
-# Invoke-RestMethod de PowerShell 5.1 lee las respuestas como Latin-1 (salen
-# tildes rotas); aqui se decodifican como UTF-8.
+# Decodifica las respuestas como UTF-8 (PowerShell 5.1 usa Latin-1).
 function Api([string]$metodo, [string]$url, $cuerpo = $null) {
 	$p = @{ Method = $metodo; Uri = $url; Headers = $H; UseBasicParsing = $true }
 	if ($cuerpo) {
@@ -86,7 +76,6 @@ function VerBandeja {
 	@(Bandeja) | Select-Object tipo, titulo, leida, creadaEn | Format-Table -AutoSize | Ver
 }
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 1. Contenedores levantados con Docker Compose"
 Push-Location "$raiz\infrastructure"
 docker compose ps --format "table {{.Name}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" | Ver
@@ -100,7 +89,6 @@ foreach ($t in "eter.prestamos.eventos.v1", "eter.activos.eventos.v1") {
 Nota "Todos los topicos del broker:"
 docker exec eter-kafka $kafka/kafka-topics.sh --bootstrap-server localhost:19092 --list 2>$null | Ver
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 3. POST activo $placa -> ACTIVO_CREADO -> inventario registra ALTA"
 Api POST "http://localhost:8087/api/v1/activos/activos-fijos" @{
 	nitUniv = $nit; placaInventario = $placa; descripcion = "Portatil Lenovo ThinkPad T14 (demo Kafka)"
@@ -113,7 +101,6 @@ Logs eter-inventario "ALTA del activo $placa" 1
 Nota "Kardex del activo en inventario:"
 VerKardex
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 4. POST prestamo (ya vencido) -> PRESTAMO_CREADO -> 2 consumidores"
 $prestamo = Api POST "http://localhost:8088/api/v1/activos/prestamos" @{
 	nitUniv = $nit; placaInventario = $placa; numDocumento = "79123456"
@@ -132,7 +119,6 @@ VerKardex
 Nota "Notificaciones (grupo eter-notificaciones-v2) - bandeja de 79123456@eter.edu.co:"
 VerBandeja
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 5. El vigia detecta el vencimiento -> PRESTAMO_VENCIDO"
 Nota "El vigia corre cada 30 s en Docker; esperando..."
 EsperarHasta { @(Bandeja | Where-Object { $_.tipo -eq "PRESTAMO_VENCIDO" }).Count -gt 0 } 90
@@ -140,7 +126,6 @@ Logs eter-prestamos "PRESTAMO_VENCIDO" 2
 Logs eter-inventario "PRESTAMO_VENCIDO\] no genera" 1
 @(Bandeja) | Where-Object { $_.tipo -eq "PRESTAMO_VENCIDO" } | Select-Object tipo, titulo, mensaje | Format-List | Ver
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 6. PATCH devolucion -> PRESTAMO_DEVUELTO -> DEVOLUCION + notificacion"
 Api PATCH "http://localhost:8088/api/v1/activos/prestamos/$idPrestamo/devolucion" @{
 	fechaDevolucionReal = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ss")
@@ -152,7 +137,6 @@ VerKardex
 Nota "Bandeja del custodio:"
 VerBandeja
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 7. Outbox publicado y claves de idempotencia en Redis"
 Sql "SELECT event_type, aggregate_key, published_at IS NOT NULL AS publicado, publish_attempts FROM prestamos.outbox_event WHERE placa_inventario='$placa' ORDER BY occurred_at;"
 Sql "SELECT event_type, aggregate_key, published_at IS NOT NULL AS publicado, publish_attempts FROM activos.outbox_event WHERE placa_inventario='$placa';"
@@ -165,7 +149,6 @@ $filas = foreach ($id in $ids) {
 }
 $filas | Ver
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 8. Simulador: se re-publica el mismo PRESTAMO_CREADO (duplicado)"
 $antesMov = @(Movimientos).Count
 $antesNot = @(Bandeja).Count
@@ -176,7 +159,6 @@ Logs eter-notificaciones "$eventoDuplicado" 2
 Write-Host ("Movimientos antes={0} despues={1}   |   Notificaciones antes={2} despues={3}" -f `
 		$antesMov, @(Movimientos).Count, $antesNot, @(Bandeja).Count) -ForegroundColor Yellow
 
-# ------------------------------------------------------------------------------
 if (-not $SinRedisCaido) {
 	Titulo "EVIDENCIA 9. Redis caido: PostgreSQL sigue frenando el duplicado"
 	docker stop eter-redis | Out-Null
@@ -190,7 +172,6 @@ if (-not $SinRedisCaido) {
 	Nota "Redis encendido de nuevo."
 }
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 10. Mensaje invalido -> DLT sin reintentos"
 & "$PSScriptRoot\simular_evento.ps1" -Tipo invalido | Out-Null
 Start-Sleep -Seconds 8
@@ -208,7 +189,6 @@ docker exec eter-kafka $kafka/kafka-console-consumer.sh --bootstrap-server local
 		"grupo={0}`n   key={1}  valor={2}`n   causa={3}" -f $grupo, $partes[1], $partes[2], $causa
 	} | Ver
 
-# ------------------------------------------------------------------------------
 Titulo "EVIDENCIA 11. Grupos de consumidores al dia (LAG = 0)"
 foreach ($g in "eter-inventario-v1", "eter-notificaciones-v2") {
 	docker exec eter-kafka $kafka/kafka-consumer-groups.sh --bootstrap-server localhost:19092 `

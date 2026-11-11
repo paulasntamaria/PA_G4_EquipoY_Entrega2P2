@@ -9,7 +9,6 @@ public interface CrearActivoFijoUseCase {
 
 	ActivoFijo crear(Command command);
 
-	/** El Command va anidado para no llenar el paquete de archivos de una linea. */
 	record Command(
 			String nitUniv,
 			String placaInventario,

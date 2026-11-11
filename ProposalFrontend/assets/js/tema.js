@@ -1,10 +1,4 @@
-/*
- * ETER · preferencias que deben aplicarse antes de pintar.
- *
- * Se carga en <head>, antes de las hojas de estilo, para que la página no
- * parpadee con el tema o el ancho de menú equivocados. El tema oscuro es el
- * predeterminado; data-tema-fijo en <html> lo deja como está (pantalla de ingreso).
- */
+// Aplica el tema y el ancho del menú antes de pintar, para evitar parpadeos.
 (function () {
   'use strict';
   const leer = (clave) => {

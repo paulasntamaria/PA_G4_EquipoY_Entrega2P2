@@ -7,11 +7,7 @@ import org.springframework.stereotype.Component;
 
 import com.eter.eterbackend.activos.application.port.in.GenerarAvisosPrestamosVencidosUseCase;
 
-/**
- * Vigia de prestamos. Es un adaptador de entrada mas: lo unico que hace es
- * despertar cada cierto tiempo y llamar al caso de uso. Toda la regla de
- * negocio vive en la capa de aplicacion, no aqui.
- */
+/** Vigia de prestamos: llama al caso de uso cada cierto tiempo. */
 @Component
 public class PrestamoVigiaScheduler {
 

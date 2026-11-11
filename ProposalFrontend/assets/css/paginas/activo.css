@@ -1,4 +1,4 @@
-/* ETER · Detalle de un activo (activo.html). Solo tokens de eter.css. */
+/* Detalle de un activo */
 
 /* Cabecera */
 .cabecera-cuerpo { flex: 1 1 420px; min-width: 0; }
@@ -16,11 +16,11 @@
 }
 .enlace-seccion:hover { text-decoration: underline; text-underline-offset: 3px; }
 .detalle-vacio { display: grid; }
-/* Contiene los .sr (absolutos) de las celdas dentro del scroll de la tabla. */
+/* Contiene los .sr de las celdas. */
 .detalle .tabla-marco { position: relative; }
 .reintentar { margin-top: 10px; }
 
-/* Ficha del bien: la etiqueta de inventario y sus datos */
+/* Ficha del bien */
 .identidad { container-type: inline-size; padding: 22px; }
 .identidad-rejilla { display: grid; gap: 22px; }
 @container (min-width: 600px) {
@@ -62,7 +62,7 @@
 }
 .tabla .guion { color: var(--regla-2); }
 
-/* Kardex: renglones con fecha y hora a la izquierda */
+/* Kardex */
 .kardex { padding: 2px 16px; }
 .kardex .cronologia li { grid-template-columns: 86px 14px minmax(0, 1fr); }
 .kardex .cronologia time { display: grid; align-content: start; line-height: 1.4; }

@@ -1,9 +1,4 @@
-# ETER - Entrega 2P2: Kafka e integracion orientada a eventos.
-#
-#   docker compose up -d --build     levanta TODO (infra + 4 microservicios)
-#   docker compose up -d postgres kafka kafka-init redis kafka-ui
-#                                    solo la infraestructura (para correr los
-#                                    servicios desde el IDE con gradlew bootRun)
+# Levantar todo: docker compose up -d --build
 name: eter-entrega2
 
 # Variables comunes a los 4 microservicios.
@@ -27,7 +22,7 @@ x-entorno-eter: &entorno-eter
   ETER_KAFKA_BOOTSTRAP_SERVERS: kafka:19092
 
 services:
-  # ── Infraestructura ─────────────────────────────────────────────────────────
+  # Infraestructura
   postgres:
     image: postgres:16-alpine
     container_name: eter-postgres
@@ -50,7 +45,7 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      # PLAINTEXT (19092) = red interna de Docker; EXTERNAL (9092) = desde Windows.
+      # PLAINTEXT: red interna de Docker; EXTERNAL: desde el host.
       KAFKA_LISTENERS: PLAINTEXT://:19092,CONTROLLER://:9093,EXTERNAL://:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:19092,EXTERNAL://localhost:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -61,7 +56,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
-      # Los topicos se crean explicitamente en kafka-init (diseño controlado).
+      # Los topicos se crean en kafka-init.
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     healthcheck:
@@ -70,7 +65,7 @@ services:
       timeout: 5s
       retries: 20
 
-  # Crea los topicos del diseño (ver docs/EVENTOS_KAFKA.md) y termina.
+  # Crea los topicos y termina.
   kafka-init:
     image: apache/kafka:3.9.0
     container_name: eter-kafka-init
@@ -87,7 +82,7 @@ services:
         /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:19092 --list
     restart: "no"
 
-  # Almacen de idempotencia de los consumidores: eter:idem:{grupo}:{eventId}.
+  # Idempotencia de los consumidores.
   redis:
     image: redis:7.4-alpine
     container_name: eter-redis
@@ -112,7 +107,7 @@ services:
     depends_on:
       kafka: { condition: service_healthy }
 
-  # ── Microservicios ──────────────────────────────────────────────────────────
+  # Microservicios
   activos:
     <<: *servicio-eter
     build: ../services/eter-activos-service
@@ -135,7 +130,7 @@ services:
       SERVER_PORT: 8088
       ETER_PRESTAMOS_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-eterdb}?currentSchema=prestamos
       ETER_ACTIVOS_BASE_URL: http://activos:8087
-      # Vigia cada 30 s para poder ver PRESTAMO_VENCIDO durante la demo.
+      # Vigia cada 30 s para la demo.
       ETER_VIGIA_DELAY_MS: 30000
 
   inventario:
@@ -169,7 +164,7 @@ services:
       ETER_NOTIFICACIONES_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-eterdb}?currentSchema=notificaciones
       ETER_REDIS_HOST: redis
 
-  # API Gateway GraphQL: unico punto de entrada del frontend (HTTP + WebSocket en /graphql).
+  # Gateway GraphQL: punto de entrada del frontend.
   graphql-gateway:
     build: ../services/eter-graphql-gateway
     image: eter/graphql-gateway:entrega2p2

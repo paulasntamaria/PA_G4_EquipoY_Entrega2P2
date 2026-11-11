@@ -22,7 +22,7 @@ public class OutboxPersistenceAdapter implements EventoOutboxRepository {
 	@Override
 	@Transactional
 	public boolean guardarSiNoExiste(EventoOutbox evento) {
-		// El dedupKey es lo que evita reemitir el mismo hecho una y otra vez.
+		// El dedupKey evita reemitir el mismo hecho.
 		if (repositorio.existsByDedupKey(evento.dedupKey())) {
 			return false;
 		}

@@ -41,8 +41,7 @@ export async function llamar(servicio, ruta, { metodo = 'GET', query, cuerpo, he
   const datos = texto ? safeJson(texto) : null;
 
   if (!respuesta.ok) {
-    // Los microservicios responden application/problem+json (RFC 7807); los de
-    // validacion agregan "errores": [{campo, mensaje}] (ManejadorErroresBase).
+    // Errores en problem+json; los de validacion traen "errores".
     const detalle = datos?.detail ?? datos?.title ?? `Error ${respuesta.status} en ${servicio}`;
     const errores = datos?.errores ?? datos?.errors;
     throw new GraphQLError(detalle, {

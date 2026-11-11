@@ -13,10 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-/**
- * Pruebas del dominio de prestamos. Cubren la regla que resolvio el riesgo de
- * la Entrega 1: un prestamo solo se devuelve una vez y "vencido" es derivado.
- */
 @DisplayName("PrestamoTemporal (dominio)")
 class PrestamoTemporalTest {
 

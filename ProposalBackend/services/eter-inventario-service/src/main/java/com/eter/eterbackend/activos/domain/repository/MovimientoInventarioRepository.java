@@ -10,9 +10,9 @@ public interface MovimientoInventarioRepository {
 
 	List<MovimientoInventario> buscar(String nitUniv, String placaInventario, TipoMovimiento tipoMovimiento);
 
-	/** Movimiento ya registrado con esa Idempotency-Key en la universidad, si existe. */
+	/** Movimiento con esa Idempotency-Key, si existe. */
 	Optional<MovimientoInventario> findByClaveIdempotencia(String nitUniv, String claveIdempotencia);
 
-	/** @param claveIdempotencia puede ser null cuando el cliente no envia la clave. */
+	/** @param claveIdempotencia puede ser null. */
 	MovimientoInventario save(MovimientoInventario movimientoInventario, String claveIdempotencia);
 }

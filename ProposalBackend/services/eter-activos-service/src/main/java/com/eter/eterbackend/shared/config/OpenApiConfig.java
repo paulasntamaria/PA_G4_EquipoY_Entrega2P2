@@ -22,7 +22,7 @@ public class OpenApiConfig {
 						.type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")));
 	}
 
-	/** Documenta en el contrato los errores que puede devolver cada endpoint. */
+	/** Errores de cada endpoint en el contrato. */
 	@Bean
 	OpenApiCustomizer respuestasDeError() {
 		return openApi -> ContratoErroresOpenApi.documentar(openApi, Map.of(

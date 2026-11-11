@@ -1,10 +1,4 @@
-/*
- * ETER · Registro de activos (activos.html)
- *
- * Carga api.activos() una sola vez y los préstamos vigentes en paralelo; filtra
- * en el cliente por estado, sede y texto. Parámetros de URL:
- *   ?estado=ACTIVO|MANTENIMIENTO|BAJA   ?sede=SED-01   ?q=texto   ?nuevo=1
- */
+// Registro de activos. Filtros de URL: ?estado, ?sede, ?q, ?nuevo=1.
 (function () {
   'use strict';
   const { ui, api, sesion } = ETER;
@@ -53,7 +47,7 @@
 
   ui.soloAdmin(el.btnRegistrar);
 
-  // ── Utilidades ────────────────────────────────────────────────────────────
+  // Utilidades
   const normalizar = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
   const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 
@@ -68,7 +62,7 @@
     return { vencido: false, texto: `Vence en ${plural(d, 'día', 'días')}` };
   }
 
-  /** Siguiente placa libre de la serie más usada (AF-2026-0012 -> AF-2026-0013). */
+  /** Siguiente placa libre (AF-2026-0012 -> AF-2026-0013). */
   function siguientePlaca() {
     const series = new Map();
     for (const a of activos) {
@@ -99,10 +93,10 @@
       poner('q', filtro.texto.trim());
       u.searchParams.delete('nuevo');
       if (u.href !== location.href) history.replaceState(null, '', u);
-    } catch { /* desde file:// algunos navegadores no lo permiten; no es grave */ }
+    } catch { /* file:// no lo permite */ }
   }
 
-  // ── Pintado ───────────────────────────────────────────────────────────────
+  // Pintado
   function celdaPrestamo(p) {
     if (!prestamosOk) return ui.html`<span class="tenue" title="El servicio de préstamos no respondió">sin dato</span>`;
     if (!p) return ui.html`<span class="guion" aria-hidden="true">—</span><span class="sr">Sin préstamo vigente</span>`;
@@ -191,7 +185,7 @@
     el.total.textContent = ui.fmt.moneda(total);
   }
 
-  // ── Carga ─────────────────────────────────────────────────────────────────
+  // Carga
   async function cargar() {
     el.error.hidden = true;
     el.vacia.hidden = true;
@@ -233,7 +227,7 @@
     aplicar();
   }
 
-  // ── Diálogo de registro ───────────────────────────────────────────────────
+  // Diálogo de registro
   function pintarSugerencia() {
     el.sugerencia.innerHTML = sugerida
       ? ui.html` Siguiente libre: <button type="button" class="boton-texto" data-accion="usar-placa" aria-label="Usar la placa ${sugerida}">${sugerida}</button>`
@@ -289,7 +283,7 @@
     ui.ocupado(el.enviar, true);
     try {
       const creado = await api.crearActivo(input);
-      // El detalle muestra el aviso de Kafka y espera el ALTA en el kardex.
+      // El detalle espera el ALTA en el kardex.
       location.href = `${ui.urlActivo(creado.placaInventario)}&creado=1`;
     } catch (e) {
       ui.ocupado(el.enviar, false);
@@ -298,7 +292,7 @@
   });
   el.valor.addEventListener('input', vistaValor);
 
-  // ── Eventos ───────────────────────────────────────────────────────────────
+  // Eventos
   document.addEventListener('click', (ev) => {
     const cerrar = ev.target.closest('[data-cerrar]');
     if (cerrar) { ui.cerrar(cerrar.closest('dialog')); return; }
@@ -333,7 +327,7 @@
   el.sede.addEventListener('change', () => { filtro.sede = el.sede.value; aplicar(); });
   el.buscar.addEventListener('input', ui.demorar(() => { filtro.texto = el.buscar.value; aplicar(); }, 200));
 
-  // Filas clicables (el enlace de la placa sigue siendo el camino con teclado).
+  // Filas clicables.
   el.filas.addEventListener('click', (ev) => {
     if (ev.target.closest('a, button')) return;
     if (String(window.getSelection?.() || '').trim()) return; // está seleccionando texto

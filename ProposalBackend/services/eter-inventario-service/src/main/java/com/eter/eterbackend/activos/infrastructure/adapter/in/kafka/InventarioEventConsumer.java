@@ -20,20 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Adaptador de entrada por Kafka del kardex de inventario.
- *
- * Escucha dos topicos y traduce cada hecho de negocio a un movimiento:
- *
- *   eter.prestamos.eventos.v1   PRESTAMO_CREADO      -> PRESTAMO
- *                               PRESTAMO_DEVUELTO    -> DEVOLUCION
- *                               PRESTAMO_VENCIDO     -> (no mueve inventario, se ignora)
- *   eter.activos.eventos.v1     ACTIVO_CREADO        -> ALTA
- *                               ACTIVO_DADO_DE_BAJA  -> BAJA
- *
- * Este consumidor usa su propio grupo (eter-inventario-v1), asi que recibe los
- * mismos eventos de prestamos que notificaciones sin quitarselos.
- */
+/** Traduce los eventos de prestamos y activos a movimientos del kardex. */
 @Component
 public class InventarioEventConsumer {
 
@@ -49,7 +36,7 @@ public class InventarioEventConsumer {
 		this.idempotencia = idempotencia;
 	}
 
-	/** Los errores se relanzan: KafkaErrorConfig decide si reintentar o mandar al DLT. */
+	/** Los errores se relanzan a KafkaErrorConfig. */
 	@KafkaListener(topics = { "${eter.kafka.topic-prestamos}", "${eter.kafka.topic-activos}" })
 	public void consumir(ConsumerRecord<String, String> registro) {
 		JsonNode sobre = leer(registro.value());
@@ -89,7 +76,7 @@ public class InventarioEventConsumer {
 						command.eventId());
 			}
 		} catch (DataIntegrityViolationException ex) {
-			// Dos entregas a la vez: el indice uq_movimiento_idempotency_key frena la segunda.
+			// Entrega simultanea: el indice unico frena la segunda.
 			log.info("Evento {} duplicado frenado por uq_movimiento_idempotency_key.", command.eventId());
 		}
 	}
@@ -118,8 +105,7 @@ public class InventarioEventConsumer {
 				throw new MensajeKafkaInvalidoException("El campo '%s' no es una fecha válida.".formatted(campo), ex);
 			}
 		}
-		// Las fechas del kardex son hora local (igual que las que digita el usuario),
-		// asi que el instante del evento se pasa a la zona del servidor.
+		// El instante del evento se pasa a hora local.
 		try {
 			return OffsetDateTime.parse(obligatorio(sobre, "occurredAt"))
 					.atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();

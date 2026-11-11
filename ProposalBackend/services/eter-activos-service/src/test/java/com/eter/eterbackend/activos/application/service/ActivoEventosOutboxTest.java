@@ -24,7 +24,6 @@ import com.eter.eterbackend.activos.domain.repository.ActivoFijoRepository;
 import com.eter.eterbackend.shared.events.domain.EventoOutbox;
 import com.eter.eterbackend.shared.events.domain.EventoOutboxRepository;
 
-/** El alta y la baja del activo dejan su evento en el Outbox para inventario. */
 @DisplayName("ActivoFijoService -> eventos en el Outbox")
 class ActivoEventosOutboxTest {
 

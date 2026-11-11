@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import com.eter.eterbackend.activos.domain.model.ActivoFijo;
 
-/** Puerto de salida. El dominio dice QUE necesita; el adaptador JPA dice COMO. */
+/** Puerto de salida del dominio. */
 public interface ActivoFijoRepository {
 
 	boolean existsById(String nitUniv, String placaInventario);

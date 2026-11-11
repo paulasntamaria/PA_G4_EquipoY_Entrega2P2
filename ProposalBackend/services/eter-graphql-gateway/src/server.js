@@ -13,9 +13,9 @@ export const yoga = createYoga({
   schema: createSchema({ typeDefs, resolvers }),
   graphqlEndpoint: '/graphql',
   landingPage: false,
-  // Un GraphQLError con extensions.code ya viaja al cliente; el resto se oculta.
+  // Solo los GraphQLError con extensions.code llegan al cliente.
   maskedErrors: true,
-  // HTTP: header Authorization. WebSocket: connectionParams.Authorization.
+  // Token: header Authorization o connectionParams (WebSocket).
   context: ({ request, connectionParams }) => ({
     usuario: autenticar(
       request?.headers.get('authorization') ??

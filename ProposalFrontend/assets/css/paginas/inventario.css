@@ -1,4 +1,4 @@
-/* ETER · Inventario (kardex y actas de asignación). Solo tokens de eter.css. */
+/* Inventario */
 
 .solo-lectura {
   margin-top: 10px;
@@ -13,7 +13,7 @@
 .panel { display: grid; gap: var(--e-4); align-content: start; min-width: 0; }
 .panel[hidden] { display: none; }
 
-/* ── Resumen: asientos por tipo ───────────────────────────────────────────── */
+/* Resumen por tipo */
 .resumen {
   background: var(--hoja); border: 1px solid var(--regla);
   border-radius: var(--r-2); box-shadow: var(--sombra-tarjeta); overflow: hidden;
@@ -60,7 +60,7 @@
 .conteo-origen span { display: block; }
 .conteo--total .conteo-tipo { color: var(--tinta); }
 
-/* Signo de entrada / salida / interno */
+/* Signo del movimiento */
 .signo {
   display: inline-grid; place-items: center; flex: none;
   width: 15px; height: 15px; border-radius: 50%;
@@ -70,7 +70,7 @@
 .signo--salida { color: var(--peligro); background: var(--peligro-fondo); }
 .signo--interno { color: var(--neutro); background: var(--neutro-fondo); }
 
-/* ── Filtros ──────────────────────────────────────────────────────────────── */
+/* Filtros */
 .filtros .campo--buscar { flex: 1 1 280px; }
 .filtros-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
 
@@ -79,11 +79,10 @@
 .nota-libro strong { margin-right: 4px; font-weight: 600; color: var(--tinta-2); }
 .nota-libro .mono { color: var(--tinta); overflow-wrap: anywhere; }
 
-/* ── Tablas ───────────────────────────────────────────────────────────────── */
-/* Contiene los .sr de las celdas: sin esto escapan del scroll del marco y
-   ensanchan la página en móvil. */
+/* Tablas */
+/* Contiene los .sr de las celdas. */
 .panel .tabla-marco { position: relative; }
-/* El folio cuenta hacia atrás: la vista va del más reciente al más antiguo. */
+/* El folio cuenta hacia atrás. */
 .kardex-cronologico tbody tr { counter-increment: folio -1; }
 .tabla--kardex td.folio-n { text-align: right; padding-right: 12px; }
 
@@ -106,7 +105,7 @@
 .registro-pie { margin-top: -14px; padding: 10px 0 12px; border-top: 1px solid var(--regla); font-size: var(--t-xs); color: var(--tinta-3); }
 .registro-pie:empty { display: none; }
 
-/* ── Diálogos ─────────────────────────────────────────────────────────────── */
+/* Diálogos */
 .dialogo .folio { margin-bottom: 6px; }
 .pista--ok { color: var(--ok); }
 .pista--mal { color: var(--aviso); }

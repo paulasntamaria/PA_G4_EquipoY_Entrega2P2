@@ -20,10 +20,6 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
-/**
- * Pruebas del filtro de idempotencia en Redis. Se simula Redis con Mockito para
- * cubrir los cuatro caminos: primera vez, duplicado, en proceso y Redis caido.
- */
 @DisplayName("RedisIdempotenciaEventos (idempotencia del consumidor)")
 class RedisIdempotenciaEventosTest {
 

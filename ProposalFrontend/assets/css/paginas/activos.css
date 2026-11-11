@@ -1,6 +1,6 @@
-/* ETER · Registro de activos (activos.html). Solo tokens de eter.css. */
+/* Registro de activos */
 
-/* Filtros: segmentos alineados con la altura de los campos */
+/* Filtros */
 .filtros .segmentos { min-height: 40px; align-items: center; }
 .filtro-sede { flex: 1 1 170px; max-width: 240px; }
 .filtro-buscar { flex: 3 1 260px; }
@@ -8,11 +8,10 @@
   .filtro-sede { max-width: none; }
 }
 
-/* La tabla, su paginación y el renglón de totales ocupan todo el ancho de la tarjeta */
+/* Tabla a todo el ancho de la tarjeta */
 .registro { display: grid; min-width: 0; margin-inline: calc(-1 * var(--tarjeta-pad)); }
 .registro .paginador { margin: 0; }
-/* position: relative contiene los .sr (absolutos) de las celdas; sin esto
-   escapan del scroll de la tabla y estiran la página en móvil. */
+/* Contiene los .sr de las celdas. */
 .registro .tabla-marco { position: relative; margin-inline: 0; }
 .registro-pie {
   display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px;
