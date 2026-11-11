@@ -1,16 +1,20 @@
 /* Dashboard */
 
 /* Franja superior */
+/* Banner: la ilustración (assets/img) ocupa la derecha; el texto vive en la zona lisa de la izquierda. */
 .hero {
-  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px;
-  padding: 4px 0 16px; border-bottom: 1px solid var(--regla);
+  display: grid; grid-template-columns: minmax(0, 46%); align-content: center; gap: 14px;
+  min-height: 200px; padding: 28px 32px; overflow: hidden;
+  border: 1px solid var(--regla); border-radius: var(--r-2);
+  background: var(--papel) url("../../img/eter_dashboard_header.svg") left center / cover no-repeat;
 }
-.hero-texto { display: grid; gap: 2px; min-width: 0; }
+:root[data-tema="oscuro"] .hero { background-image: url("../../img/eter_dashboard_header_oscuro.svg"); }
+.hero-texto { display: grid; gap: 4px; min-width: 0; }
 .hero-titulo { font: 600 1.75rem/1.2 var(--f-titulo); }
 .hero-sub { font-size: var(--t-md); color: var(--tinta-3); }
 .hero-estado {
   --color: var(--tinta-3);
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 8px; justify-self: start;
   font-size: var(--t-sm); font-weight: 500; color: var(--tinta-2); white-space: nowrap;
 }
 .hero-estado[data-estado="ok"] { --color: var(--ok); }
@@ -161,7 +165,8 @@ a.metrica:hover { border-color: var(--primario-borde); background: var(--fila-ho
   .tarjetas--tres > :first-child { grid-column: 1 / -1; }
 }
 @media (max-width: 900px) {
-  .hero { padding: 0 0 12px; }
+  /* En pantallas angostas el texto taparía la ilustración: queda solo la tarjeta. */
+  .hero, :root[data-tema="oscuro"] .hero { grid-template-columns: minmax(0, 1fr); min-height: 0; padding: 18px; background-image: none; }
   .hero-titulo { font-size: 1.375rem; }
   .metricas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .metrica--anillo { grid-column: 1 / -1; }

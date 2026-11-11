@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ingresar · ETER Patrimonio</title>
+  <link rel="icon" type="image/png" href="assets/img/favicon.png">
   <script src="assets/js/tema.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,24 +15,9 @@
 </head>
 <body>
   <div class="ingreso">
-    <section class="ingreso-marca" aria-label="ETER, patrimonio universitario">
-      <div class="ingreso-contenido">
-        <div class="ingreso-logo">
-          <span class="ingreso-logo-icono icono" aria-hidden="true">account_balance</span>
-          <p class="ingreso-wordmark">ETER</p>
-        </div>
-
-        <p class="ingreso-lema">Patrimonio universitario: quién tiene cada activo, dónde está y cuándo debe volver.</p>
-
-        <ul class="ingreso-insignias">
-          <li><span class="icono" aria-hidden="true">apartment</span>Varias universidades, cada una con sus datos</li>
-          <li><span class="icono" aria-hidden="true">lock</span>Acceso con token JWT firmado</li>
-          <li><span class="icono" aria-hidden="true">hub</span>Kardex y avisos al día gracias a Kafka</li>
-        </ul>
-      </div>
-    </section>
-
     <main class="ingreso-lado" id="main">
+      <img class="ingreso-logo" src="assets/img/eter-logo-oscuro.png" alt="ETER · Inventario y Movimientos" width="840" height="288">
+
       <div class="ingreso-hoja">
         <header class="ingreso-cabeza">
           <h1 class="ingreso-titulo">Ingresar</h1>
@@ -73,6 +59,15 @@
         </details>
       </div>
     </main>
+
+    <section class="ingreso-marca" aria-label="ETER, patrimonio universitario">
+      <p class="ingreso-lema">Patrimonio universitario: quién tiene cada activo, dónde está y cuándo debe volver.</p>
+      <ul class="ingreso-insignias">
+        <li><span class="icono" aria-hidden="true">apartment</span>Varias universidades</li>
+        <li><span class="icono" aria-hidden="true">lock</span>Acceso con JWT firmado</li>
+        <li><span class="icono" aria-hidden="true">hub</span>Eventos con Kafka</li>
+      </ul>
+    </section>
   </div>
 
   <script src="assets/js/api.js"></script>

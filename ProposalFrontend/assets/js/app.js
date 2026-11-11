@@ -52,11 +52,13 @@
     devolver: 'assignment_return',
     llave: 'key',
     servidor: 'dns',
-    logo: 'account_balance',
   };
   const icono = (nombre, clase = '') =>
     crudo(`<span class="icono ${clase}" aria-hidden="true">${ICONOS[nombre] || 'help'}</span>`);
-  const logo = () => icono('logo');
+  /** Isotipo de ETER: versión a color en tema claro y blanca en tema oscuro (assets/img). */
+  const logo = () => crudo(`
+    <img class="solo-claro" src="assets/img/eter-isotipo.png" alt="" width="40" height="40">
+    <img class="solo-oscuro" src="assets/img/eter-isotipo-oscuro.png" alt="" width="40" height="40">`);
 
   // Formato
   const aFecha = (iso) => (iso ? new Date(iso) : null);
@@ -420,8 +422,8 @@
     const tieneActual = (s) => s.items.some(([id]) => id === actual);
     riel.innerHTML = html`
       <a class="marca" href="index.html" aria-label="ETER, ir al dashboard">
-        <span class="marca-icono">${logo()}</span>
-        <span class="marca-texto"><span class="marca-nombre">ETER</span><span class="marca-sub">Sistema de Gestión</span></span>
+        <span class="marca-logo">${logo()}</span>
+        <span class="marca-texto"><span class="marca-nombre">ETER</span><span class="marca-sub">Inventario y movimientos</span></span>
       </a>
       <nav class="nav" aria-label="Módulos">
         ${MENU.map((s) => {

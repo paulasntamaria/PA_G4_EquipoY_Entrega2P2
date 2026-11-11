@@ -20,7 +20,7 @@ No necesita build ni `npm install`.
 
 | Modo | Cómo se entra | Qué hace |
 |---|---|---|
-| **Gateway** | En `ingresar.html`, pega un JWT y la URL del gateway | Todas las pantallas consultan `http://localhost:4000/graphql`; la bandeja usa la suscripción `notificacionRecibida` por WebSocket |
+| **Gateway** | En `ingresar.html`, pega un JWT y la URL del gateway | Todas las pantallas consultan `http://127.0.0.1:4000/graphql`; la bandeja usa la suscripción `notificacionRecibida` por WebSocket |
 | **Demostración** | Botón "Ver demostración", o `?demo=1` en cualquier página | Mismos datos y reglas que los microservicios, guardados en el navegador. Imita lo que hace Kafka: el kardex y la notificación aparecen unos segundos después de crear o devolver un préstamo, dar de alta o de baja un activo |
 
 Para el modo gateway:
@@ -31,6 +31,10 @@ docker compose up -d --build          # infraestructura, 4 microservicios y gate
 cd ..
 python tools/generar_token.py         # JWT de desarrollo (ADMIN, NIT 900123456-1)
 ```
+
+El frontend usa `127.0.0.1` y no `localhost`, y si escribes `localhost` lo cambia solo. En Windows,
+`localhost` resuelve primero a IPv6 (`::1`), y el reenvío de puertos de Docker Desktop por IPv6 a
+veces acepta la conexión y no responde: la página queda cargando sin error.
 
 ## Pantallas
 
@@ -52,6 +56,19 @@ con tema oscuro. Source Sans 3 para títulos y texto, y Source Code Pro para pla
 íconos son [Material Symbols Outlined](https://fonts.google.com/icons): `ICONOS` en `app.js`
 traduce cada nombre interno al nombre del símbolo, y `ETER.ui.icono('activos')` pinta
 `<span class="icono">sell</span>`. El ícono de la página activa se muestra relleno (`FILL 1`).
+
+Imágenes (`assets/img`):
+
+| Archivo | Dónde |
+|---|---|
+| `eter-isotipo.png` / `eter-isotipo-oscuro.png` | Logo del menú lateral, según el tema (clases `solo-claro` / `solo-oscuro`) |
+| `eter-logo-oscuro.png` | Logo horizontal sobre el fondo de `ingresar.html` |
+| `eter_login_background.svg` | Fondo de `ingresar.html`: el formulario va en su zona lisa izquierda |
+| `eter_dashboard_header.svg` / `_oscuro.svg` | Banner del dashboard; la versión oscura cambia solo los colores |
+| `favicon.png` | Ícono de la pestaña en todas las páginas |
+
+Los PNG de la web salen de los originales (`isotipo.png`, `logoHorizontal.png` y sus versiones
+oscuras): se les quitó el fondo sólido, se recortaron al dibujo y se redujeron (de ~1.1 MB a 6–124 KB).
 
 El tema, el menú colapsado y las secciones plegadas se guardan en este navegador. En pantallas
 de hasta 900 px el menú lateral pasa a ser un cajón que abre la hamburguesa.

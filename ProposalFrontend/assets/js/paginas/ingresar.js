@@ -31,7 +31,7 @@
   const btnDemo = document.getElementById('btn-demo');
 
   campoGateway.value = sesion.gateway;
-  campoGateway.placeholder = 'http://localhost:4000/graphql';
+  campoGateway.placeholder = 'http://127.0.0.1:4000/graphql';
 
   // Aviso de llegada
   if (motivo === 'vencida') {
@@ -130,7 +130,7 @@
       if (vence && vence.getTime() < Date.now()) errores.push({ campo: 'token', mensaje: `Venció el ${ui.fmt.fechaHora(vence.toISOString())}. Genera uno nuevo.` });
     }
     if (!/^https?:\/\/\S+$/i.test(url)) {
-      errores.push({ campo: 'gateway', mensaje: 'Debe empezar por http:// o https://, por ejemplo http://localhost:4000/graphql.' });
+      errores.push({ campo: 'gateway', mensaje: 'Debe empezar por http:// o https://, por ejemplo http://127.0.0.1:4000/graphql.' });
     }
     return errores;
   }

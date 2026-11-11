@@ -9,7 +9,13 @@
     borrar(k) { try { localStorage.removeItem(k); } catch { /* idem */ } },
   };
   const CLAVES = { gateway: 'eter.gateway', token: 'eter.token', demo: 'eter.demo', datos: 'eter.demo.datos' };
-  const GATEWAY_POR_DEFECTO = 'http://localhost:4000/graphql';
+  const GATEWAY_POR_DEFECTO = 'http://127.0.0.1:4000/graphql';
+  /**
+   * localhost -> 127.0.0.1. En Windows, "localhost" resuelve primero a IPv6 (::1) y el reenvío de
+   * puertos de Docker Desktop por IPv6 a veces acepta la conexión y no responde: el navegador queda
+   * colgado sin probar IPv4. Es la misma máquina, así que se usa IPv4 directamente.
+   */
+  const normalizarGateway = (url) => String(url || '').trim().replace(/^(\w+:\/\/)localhost(?=[:/]|$)/i, '$1127.0.0.1');
 
   // Errores
   class ApiError extends Error {
@@ -38,7 +44,7 @@
   const USUARIO_DEMO = { email: '79123456@eter.edu.co', nitUniv: '900123456-1', roles: ['ADMIN'] };
 
   const sesion = {
-    get gateway() { return almacen.leer(CLAVES.gateway) || GATEWAY_POR_DEFECTO; },
+    get gateway() { return normalizarGateway(almacen.leer(CLAVES.gateway)) || GATEWAY_POR_DEFECTO; },
     get token() { return almacen.leer(CLAVES.token); },
     get demo() { return almacen.leer(CLAVES.demo) === '1'; },
     activa() { return this.demo || !!this.token; },
@@ -69,7 +75,7 @@
     iniciar(token, gateway) {
       almacen.borrar(CLAVES.demo);
       almacen.escribir(CLAVES.token, String(token).trim().replace(/^Bearer\s+/i, ''));
-      if (gateway && gateway.trim()) almacen.escribir(CLAVES.gateway, gateway.trim());
+      if (gateway && gateway.trim()) almacen.escribir(CLAVES.gateway, normalizarGateway(gateway));
     },
     iniciarDemo() {
       almacen.borrar(CLAVES.token);
