@@ -1,0 +1,53 @@
+server:
+  port: 8088
+
+spring:
+  application:
+    name: eter-prestamos-service
+  datasource:
+    url: "${ETER_PRESTAMOS_DB_URL:jdbc:postgresql://localhost:5433/eterdb?currentSchema=prestamos}"
+    username: "${ETER_DB_USER:postgres}"
+    password: "${ETER_DB_PASSWORD:eter_dev_2026}"
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: prestamos
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    schemas: prestamos
+    default-schema: prestamos
+    create-schemas: true
+  kafka:
+    bootstrap-servers: "${ETER_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+
+eter:
+  jwt:
+    secret: "${ETER_JWT_SECRET:eter-jwt-secret-development-only-CHANGE-IN-PRODUCTION-9f4a8c7e}"
+  security:
+    # Roles que pueden crear, modificar o eliminar (POST/PUT/PATCH/DELETE).
+    # Las consultas (GET) solo requieren estar autenticado.
+    roles-escritura: "${ETER_ROLES_ESCRITURA:ADMIN}"
+  services:
+    activos-base-url: "${ETER_ACTIVOS_BASE_URL:http://localhost:8087}"
+    # Tiempo maximo de espera a activos-service antes de responder 503.
+    activos-timeout-ms: "${ETER_ACTIVOS_TIMEOUT_MS:3000}"
+  kafka:
+    topic-prestamos: "${ETER_KAFKA_TOPIC_PRESTAMOS:eter.prestamos.eventos.v1}"
+  outbox:
+    publicador-delay-ms: "${ETER_OUTBOX_DELAY_MS:5000}"
+  prestamos:
+    vigia-delay-ms: "${ETER_VIGIA_DELAY_MS:60000}"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

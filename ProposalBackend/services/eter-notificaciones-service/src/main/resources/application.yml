@@ -1,0 +1,60 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: eter-notificaciones-service
+  datasource:
+    url: "${ETER_NOTIFICACIONES_DB_URL:jdbc:postgresql://localhost:5433/eterdb?currentSchema=notificaciones}"
+    username: "${ETER_DB_USER:postgres}"
+    password: "${ETER_DB_PASSWORD:eter_dev_2026}"
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: notificaciones
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    schemas: notificaciones
+    default-schema: notificaciones
+    create-schemas: true
+  data:
+    redis:
+      host: "${ETER_REDIS_HOST:localhost}"
+      port: "${ETER_REDIS_PORT:6379}"
+      # Si Redis no responde rapido, el consumidor sigue y la base frena duplicados.
+      timeout: 2s
+      connect-timeout: 2s
+  kafka:
+    bootstrap-servers: "${ETER_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}"
+    consumer:
+      group-id: eter-notificaciones-v2
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+eter:
+  jwt:
+    secret: "${ETER_JWT_SECRET:eter-jwt-secret-development-only-CHANGE-IN-PRODUCTION-9f4a8c7e}"
+  kafka:
+    topic-prestamos: "${ETER_KAFKA_TOPIC_PRESTAMOS:eter.prestamos.eventos.v1}"
+  idempotencia:
+    # Clave eter:idem:{grupo}:{eventId}. PROCESANDO dura poco (si la instancia
+    # muere a mitad, otra puede tomar el evento); PROCESADO dura 7 dias.
+    ttl-procesando: PT5M
+    ttl-procesado: P7D
+
+management:
+  health:
+    # Redis caido no debe marcar el servicio como DOWN: hay respaldo en PostgreSQL.
+    redis:
+      enabled: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

@@ -1,0 +1,3 @@
+package com.eter.eterbackend.activos.infrastructure.config;
+import org.springframework.context.annotation.*; import com.eter.eterbackend.activos.application.service.PrestamoTemporalService; import com.eter.eterbackend.activos.domain.repository.PrestamoTemporalRepository; import com.eter.eterbackend.shared.activos.ActivoExistencePort; import com.eter.eterbackend.shared.events.domain.EventoOutboxRepository;
+@Configuration public class PrestamosConfig { @Bean PrestamoTemporalService prestamoTemporalService(PrestamoTemporalRepository p, ActivoExistencePort a, EventoOutboxRepository e){return new PrestamoTemporalService(p,a,e);} }

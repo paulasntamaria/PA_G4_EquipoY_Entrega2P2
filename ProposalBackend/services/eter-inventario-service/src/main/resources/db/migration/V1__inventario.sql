@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS asignacion_activo (nit_univ VARCHAR(20) NOT NULL,placa_inventario VARCHAR(50) NOT NULL,num_documento VARCHAR(20) NOT NULL,fecha_hora_acta TIMESTAMP NOT NULL,CONSTRAINT pk_asignacion PRIMARY KEY(nit_univ,placa_inventario,num_documento));
+CREATE INDEX IF NOT EXISTS idx_asignacion_doc ON asignacion_activo(num_documento);
+CREATE TABLE IF NOT EXISTS movimiento_inventario (id_movimiento BIGSERIAL NOT NULL,nit_univ VARCHAR(20) NOT NULL,placa_inventario VARCHAR(50) NOT NULL,tipo_movimiento VARCHAR(50) NOT NULL,fecha_movimiento TIMESTAMP NOT NULL,num_documento VARCHAR(20) NOT NULL,CONSTRAINT pk_movimiento PRIMARY KEY(id_movimiento),CONSTRAINT chk_tipo CHECK(tipo_movimiento IN ('ALTA','BAJA','TRASLADO','MANTENIMIENTO','ASIGNACION','PRESTAMO','DEVOLUCION')));
+CREATE INDEX IF NOT EXISTS idx_movimiento_nit_placa ON movimiento_inventario(nit_univ,placa_inventario);

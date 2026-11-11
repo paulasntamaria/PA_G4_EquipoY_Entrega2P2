@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · ETER Patrimonio</title>
+  <script src="assets/js/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="assets/css/eter.css">
+  <link rel="stylesheet" href="assets/css/paginas/panel.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="riel" id="riel"></aside>
+    <main class="main" id="main">
+      <header class="hero">
+        <div class="hero-texto">
+          <h1 class="hero-titulo">Dashboard · Patrimonio universitario</h1>
+          <p class="hero-sub" id="bajada">&nbsp;</p>
+        </div>
+        <p class="hero-estado" id="estado-sistema" data-estado="cargando" role="status"><span class="hero-punto"></span><span id="estado-texto">Conectando…</span></p>
+      </header>
+
+      <section aria-label="Cifras del día" id="cifras-zona">
+        <div class="metricas" id="cifras"></div>
+      </section>
+
+      <section aria-labelledby="t-modulos" class="modulos-zona">
+        <h2 class="sr" id="t-modulos">Módulos</h2>
+        <div class="modulos">
+          <a class="modulo" href="activos.html">
+            <span class="modulo-icono"><i data-icono="activos"></i></span>
+            <span class="modulo-texto">
+              <span class="modulo-nombre">Activos fijos</span>
+              <span class="modulo-desc">Registro, ficha y baja de cada bien</span>
+              <span class="modulo-servicio">eter-activos-service</span>
+            </span>
+            <i data-icono="flecha"></i>
+          </a>
+          <a class="modulo" href="prestamos.html">
+            <span class="modulo-icono"><i data-icono="prestamos"></i></span>
+            <span class="modulo-texto">
+              <span class="modulo-nombre">Préstamos temporales</span>
+              <span class="modulo-desc">Salidas, devoluciones y vencimientos</span>
+              <span class="modulo-servicio">eter-prestamos-service</span>
+            </span>
+            <i data-icono="flecha"></i>
+          </a>
+          <a class="modulo" href="inventario.html">
+            <span class="modulo-icono"><i data-icono="movimientos"></i></span>
+            <span class="modulo-texto">
+              <span class="modulo-nombre">Inventario</span>
+              <span class="modulo-desc">Kardex y actas de asignación</span>
+              <span class="modulo-servicio">eter-inventario-service</span>
+            </span>
+            <i data-icono="flecha"></i>
+          </a>
+          <a class="modulo" href="notificaciones.html">
+            <span class="modulo-icono"><i data-icono="notificaciones"></i></span>
+            <span class="modulo-texto">
+              <span class="modulo-nombre">Notificaciones</span>
+              <span class="modulo-desc">Avisos de préstamos en tu bandeja</span>
+              <span class="modulo-servicio">eter-notificaciones-service</span>
+            </span>
+            <i data-icono="flecha"></i>
+          </a>
+        </div>
+      </section>
+
+      <div class="tarjetas tarjetas--tres">
+        <section class="hoja tarjeta" aria-labelledby="t-plazos">
+          <div class="hoja-cabeza">
+            <h2 class="hoja-titulo" id="t-plazos">Vencidos y por vencer</h2>
+            <span class="hoja-nota" id="plazos-nota"></span>
+            <a class="ver-todo" href="prestamos.html">Ver todos</a>
+          </div>
+          <div id="plazos"></div>
+        </section>
+
+        <section class="hoja tarjeta" aria-labelledby="t-estado">
+          <div class="hoja-cabeza">
+            <h2 class="hoja-titulo" id="t-estado">Activos por estado</h2>
+            <a class="ver-todo" href="activos.html">Registro</a>
+          </div>
+          <div id="estados"></div>
+        </section>
+
+        <section class="hoja tarjeta" aria-labelledby="t-acciones">
+          <div class="hoja-cabeza">
+            <h2 class="hoja-titulo" id="t-acciones">Acciones rápidas</h2>
+          </div>
+          <div class="acciones">
+            <a class="accion" id="btn-activo" href="activos.html?nuevo=1"><i data-icono="mas"></i><span>Registrar activo</span></a>
+            <a class="accion" id="btn-prestamo" href="prestamos.html?nuevo="><i data-icono="prestamos"></i><span>Nuevo préstamo</span></a>
+            <a class="accion" href="prestamos.html?filtro=vencidos"><i data-icono="alerta"></i><span>Ver préstamos vencidos</span></a>
+            <a class="accion" href="inventario.html?tab=asignaciones"><i data-icono="asignaciones"></i><span>Ver asignaciones</span></a>
+          </div>
+          <p class="acciones-nota" id="nota-rol" hidden></p>
+        </section>
+      </div>
+
+      <div class="tarjetas tarjetas--dos">
+        <section class="hoja tarjeta" aria-labelledby="t-kardex">
+          <div class="hoja-cabeza">
+            <h2 class="hoja-titulo" id="t-kardex">Últimos movimientos del kardex</h2>
+            <a class="ver-todo" href="inventario.html">Abrir kardex</a>
+          </div>
+          <div id="kardex"></div>
+        </section>
+
+        <section class="hoja tarjeta" aria-labelledby="t-avisos">
+          <div class="hoja-cabeza">
+            <h2 class="hoja-titulo" id="t-avisos">Notificaciones recientes</h2>
+            <span class="hoja-nota" id="avisos-nota"></span>
+            <a class="ver-todo" href="notificaciones.html">Bandeja</a>
+          </div>
+          <div id="avisos"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/paginas/panel.js"></script>
+</body>
+</html>

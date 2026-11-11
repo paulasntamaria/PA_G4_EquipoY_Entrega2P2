@@ -1,0 +1,133 @@
+/* ETER · Inventario (kardex y actas de asignación). Solo tokens de eter.css. */
+
+.solo-lectura {
+  margin-top: 10px;
+  font: 500 var(--t-xs)/1.3 var(--f-texto);
+  color: var(--aviso);
+}
+
+/* Pestañas con su cuenta */
+.pestanas .cuenta { margin-left: 7px; font: 500 var(--t-xxs)/1 var(--f-codigo); color: var(--tinta-3); }
+.pestanas [aria-selected="true"] .cuenta { color: var(--tinta-2); }
+
+.panel { display: grid; gap: var(--e-4); align-content: start; min-width: 0; }
+.panel[hidden] { display: none; }
+
+/* ── Resumen: asientos por tipo ───────────────────────────────────────────── */
+.resumen {
+  background: var(--hoja); border: 1px solid var(--regla);
+  border-radius: var(--r-2); box-shadow: var(--sombra-tarjeta); overflow: hidden;
+}
+.resumen-cabeza {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px;
+  padding: 10px 14px; border-bottom: 1px solid var(--regla);
+}
+.resumen-titulo {
+  font: 400 0.9375rem/1.25 var(--f-titulo); color: var(--tinta);
+}
+.resumen-periodo { font-size: var(--t-xs); color: var(--tinta-2); }
+.resumen-periodo .mono { color: var(--tinta); }
+
+.conteos {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  overflow: hidden; min-height: 92px;
+}
+.conteo {
+  all: unset; box-sizing: border-box; cursor: pointer; min-width: 0;
+  display: grid; align-content: start; gap: 7px;
+  padding: 12px 14px 13px;
+  box-shadow: -1px 0 0 var(--regla), 0 -1px 0 var(--regla);
+  transition: background 0.12s;
+}
+.conteo:hover { background: var(--hoja-2); }
+.conteo:focus-visible { outline: 2px solid var(--primario); outline-offset: -3px; }
+.conteo[aria-pressed="true"] {
+  background: var(--primario-tenue);
+  box-shadow: -1px 0 0 var(--regla), 0 -1px 0 var(--regla), inset 0 -2px 0 var(--primario);
+}
+.conteo-tipo {
+  display: flex; align-items: center; gap: 7px; min-width: 0;
+  font: 600 var(--t-xxs)/1.2 var(--f-texto); letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--tinta-2); white-space: nowrap;
+}
+.conteo-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.conteo-n {
+  font: 400 var(--t-2xl)/0.9 var(--f-titulo); letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums; color: var(--tinta);
+}
+.conteo-n--cero { color: var(--tinta-3); }
+.conteo-origen { font: 500 var(--t-xxs)/1.3 var(--f-codigo); color: var(--tinta-3); }
+.conteo-origen span { display: block; }
+.conteo--total .conteo-tipo { color: var(--tinta); }
+
+/* Signo de entrada / salida / interno */
+.signo {
+  display: inline-grid; place-items: center; flex: none;
+  width: 15px; height: 15px; border-radius: 50%;
+  font: 600 var(--t-xs)/1 var(--f-codigo);
+}
+.signo--entrada { color: var(--ok); background: var(--ok-fondo); }
+.signo--salida { color: var(--peligro); background: var(--peligro-fondo); }
+.signo--interno { color: var(--neutro); background: var(--neutro-fondo); }
+
+/* ── Filtros ──────────────────────────────────────────────────────────────── */
+.filtros .campo--buscar { flex: 1 1 280px; }
+.filtros-acciones { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+
+/* Nota sobre el origen de los asientos */
+.nota-libro { font-size: var(--t-xs); line-height: 1.55; color: var(--tinta-3); }
+.nota-libro strong { margin-right: 4px; font-weight: 600; color: var(--tinta-2); }
+.nota-libro .mono { color: var(--tinta); overflow-wrap: anywhere; }
+
+/* ── Tablas ───────────────────────────────────────────────────────────────── */
+/* Contiene los .sr de las celdas: sin esto escapan del scroll del marco y
+   ensanchan la página en móvil. */
+.panel .tabla-marco { position: relative; }
+/* El folio cuenta hacia atrás: la vista va del más reciente al más antiguo. */
+.kardex-cronologico tbody tr { counter-increment: folio -1; }
+.tabla--kardex td.folio-n { text-align: right; padding-right: 12px; }
+
+.tabla .col-activo { min-width: 200px; }
+.tabla time.mono { white-space: nowrap; color: var(--tinta); }
+
+.mov {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 5px; border-radius: 999px;
+  background: var(--neutro-fondo); color: var(--neutro); white-space: nowrap;
+  font: 500 var(--t-xxs)/1.35 var(--f-texto);
+}
+.mov:has(.signo--entrada) { background: var(--ok-fondo); color: var(--ok); }
+.mov:has(.signo--salida) { background: var(--peligro-fondo); color: var(--peligro); }
+.mov .signo { background: transparent; }
+
+.tabla .sub.mono { font-size: var(--t-xxs); color: var(--tinta-3); }
+.origen { font: 500 var(--t-xs)/1.2 var(--f-texto); color: var(--tinta-2); white-space: nowrap; }
+.origen--kafka { color: var(--info); }
+
+.registro-pie { margin-top: -14px; padding: 10px 0 12px; border-top: 1px solid var(--regla); font-size: var(--t-xs); color: var(--tinta-3); }
+.registro-pie:empty { display: none; }
+
+/* ── Diálogos ─────────────────────────────────────────────────────────────── */
+.dialogo .folio { margin-bottom: 6px; }
+.pista--ok { color: var(--ok); }
+.pista--mal { color: var(--aviso); }
+
+.clave {
+  display: grid; gap: 5px; padding: 10px 12px 11px;
+  border: 1px dashed var(--regla-2); border-radius: var(--r-1); background: var(--hoja-2);
+}
+.clave-valor {
+  font: 500 var(--t-xs)/1.3 var(--f-codigo); letter-spacing: 0.02em;
+  color: var(--tinta); overflow-wrap: anywhere;
+}
+
+.casilla-bloque { display: grid; gap: 4px; }
+.casilla-bloque .ayuda { padding-left: 24px; }
+
+@media (max-width: 560px) {
+  .filtros-acciones { margin-left: 0; }
+  .conteos { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); }
+  .conteo { padding: 10px 8px 11px 10px; }
+  .conteo-tipo { gap: 5px; letter-spacing: 0.02em; }
+  .signo { width: 13px; height: 13px; }
+  .conteo-n { font-size: var(--t-xl); }
+}

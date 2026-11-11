@@ -1,0 +1,183 @@
+/* ETER · index.html — dashboard. Solo tokens de eter.css. */
+
+/* ── Franja superior ────────────────────────────────────────────────────── */
+.hero {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  margin: -28px -32px 4px; padding: 26px 32px;
+  background: var(--degradado-hero); border-bottom: 1px solid var(--regla);
+}
+.hero-texto { display: grid; gap: 4px; min-width: 0; }
+.hero-titulo { font: 400 1.5rem/1.2 var(--f-titulo); }
+.hero-sub { font-size: var(--t-md); color: var(--tinta-3); }
+.hero-estado {
+  --color: var(--tinta-3);
+  display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color) 30%, transparent);
+  background: color-mix(in srgb, var(--color) 12%, transparent);
+  font-size: var(--t-sm); font-weight: 500; color: var(--color); white-space: nowrap;
+}
+.hero-estado[data-estado="ok"] { --color: var(--ok); }
+.hero-estado[data-estado="parcial"] { --color: var(--aviso); }
+.hero-estado[data-estado="error"] { --color: var(--peligro); }
+.hero-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--color); animation: latido 2s infinite; }
+@keyframes latido {
+  0%, 100% { box-shadow: 0 0 3px var(--color); }
+  50% { box-shadow: 0 0 9px var(--color); }
+}
+
+/* ── Métricas ───────────────────────────────────────────────────────────── */
+#cifras-zona { min-width: 0; }
+.metricas { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.metrica {
+  --tono: var(--primario);
+  --tono-fondo: var(--primario-tenue);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 20px 14px; text-align: center; text-decoration: none; color: inherit;
+  background: var(--hoja); border: 1px solid var(--regla); border-radius: var(--r-2); box-shadow: var(--sombra-tarjeta);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+a.metrica:hover { transform: translateY(-2px); box-shadow: var(--sombra-hover); border-color: var(--primario-borde); }
+.metrica--info { --tono: var(--info); --tono-fondo: var(--info-fondo); }
+.metrica--ok { --tono: var(--ok); --tono-fondo: var(--ok-fondo); }
+.metrica--aviso { --tono: var(--aviso); --tono-fondo: var(--aviso-fondo); }
+.metrica--peligro { --tono: var(--peligro); --tono-fondo: var(--peligro-fondo); }
+.metrica--alerta { border-color: color-mix(in srgb, var(--peligro) 35%, transparent); }
+.metrica--alerta .metrica-valor { color: var(--peligro); }
+.metrica-icono {
+  display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: 2px; border-radius: 12px;
+  background: var(--tono-fondo); color: var(--tono);
+}
+.metrica-icono .icono { width: 22px; height: 22px; }
+.metrica-valor { font: 400 var(--t-2xl)/1 var(--f-titulo); font-variant-numeric: tabular-nums; }
+.metrica-etiqueta { font-size: var(--t-xs); color: var(--tinta-2); }
+.metrica-nota { font-size: var(--t-xxs); color: var(--tinta-3); }
+.metrica--anillo { justify-content: center; }
+.metrica-esqueleto-icono { width: 42px; height: 42px; border-radius: 12px; }
+.metrica-esqueleto-valor { width: 55%; height: 28px; }
+.metrica-esqueleto-texto { width: 80%; height: 12px; }
+
+/* ── Anillos SVG ────────────────────────────────────────────────────────── */
+.anillo { display: block; }
+.anillo--metrica { width: 92px; height: 92px; }
+.anillo--dona { width: 150px; height: 150px; }
+.anillo-fondo, .anillo-tramo { fill: none; stroke-width: 11; }
+.anillo--dona .anillo-fondo, .anillo--dona .anillo-tramo { stroke-width: 15; }
+.anillo-fondo { stroke: var(--hoja-2); }
+.anillo-tramo { transform: rotate(-90deg); transform-origin: 60px 60px; }
+.trazo-primario { stroke: var(--primario); }
+.trazo-ok { stroke: var(--ok); }
+.trazo-aviso { stroke: var(--aviso); }
+.trazo-neutro { stroke: var(--neutro); }
+.anillo-valor { fill: var(--tinta); font: 400 22px var(--f-titulo); }
+.anillo-texto { fill: var(--tinta-3); font: 400 10px var(--f-texto); }
+
+/* ── Módulos ────────────────────────────────────────────────────────────── */
+.modulos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.modulo {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px; min-width: 0;
+  text-decoration: none; color: inherit;
+  background: var(--hoja); border: 1px solid var(--regla); border-radius: 14px; box-shadow: var(--sombra-tarjeta);
+  transition: border-color 0.2s, background 0.2s;
+}
+.modulo > .icono { color: var(--tinta-3); transition: transform 0.2s, color 0.2s; }
+.modulo:hover { border-color: var(--primario-borde); background: var(--primario-tenue); }
+.modulo:hover > .icono { color: var(--primario); transform: translateX(3px); }
+.modulo-icono {
+  flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--primario-medio), var(--primario-tenue)); color: var(--primario);
+}
+.modulo-icono .icono { width: 20px; height: 20px; }
+.modulo-texto { flex: 1; display: grid; gap: 1px; min-width: 0; }
+.modulo-nombre { font: 400 0.9375rem/1.25 var(--f-titulo); }
+.modulo-desc { font-size: var(--t-xs); color: var(--tinta-2); }
+.modulo-servicio { margin-top: 2px; font: 400 0.625rem/1.3 var(--f-codigo); color: var(--tinta-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Filas de tarjetas ──────────────────────────────────────────────────── */
+.tarjetas { display: grid; gap: 16px; align-items: stretch; }
+.tarjetas--tres { grid-template-columns: minmax(0, 40fr) minmax(0, 32fr) minmax(0, 28fr); }
+.tarjetas--dos { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.tarjeta { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.tarjeta .hoja-cabeza { flex-wrap: nowrap; }
+.tarjeta .hoja-titulo { flex: 1; min-width: 0; }
+.tarjeta .hoja-nota:empty { display: none; }
+.tarjeta .hoja-nota { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.nota-peligro { color: var(--peligro); font-weight: 600; }
+.ver-todo { flex: none; font-size: var(--t-xs); font-weight: 500; color: var(--primario); text-decoration: none; }
+.ver-todo:hover { text-decoration: underline; text-underline-offset: 3px; }
+.tarjeta-pie { padding: 10px 18px; border-top: 1px solid var(--regla); font-size: var(--t-xs); color: var(--tinta-3); }
+
+/* ── Renglones ──────────────────────────────────────────────────────────── */
+.renglones { margin: 0; padding: 0; list-style: none; }
+.renglon {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 18px; border-bottom: 1px solid var(--regla); transition: background 0.15s;
+}
+.renglon:last-child { border-bottom: 0; }
+.renglon:hover { background: var(--fila-hover); }
+.renglon-cuerpo {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 10px; min-width: 0; flex: 1;
+}
+.renglon-cuerpo .renglon-sub { grid-column: 1 / -1; }
+.renglon-texto { min-width: 0; font-size: var(--t-sm); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.renglon-tenue { font-weight: 400; color: var(--tinta-3); }
+.renglon-sub { font-size: var(--t-xxs); color: var(--tinta-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.renglon-lado { flex: none; display: grid; justify-items: end; gap: 4px; }
+
+/* Notificaciones: el renglón entero enlaza y no lleva código */
+.renglon--enlace { padding: 0; }
+.renglon--enlace .renglon-cuerpo {
+  grid-template-columns: minmax(0, 1fr); position: relative;
+  padding: 11px 18px 11px 30px; color: inherit; text-decoration: none;
+}
+.renglon--enlace .renglon-texto { font-weight: 400; color: var(--tinta-2); }
+.renglon--nueva .renglon-texto { font-weight: 500; color: var(--tinta); }
+.renglon--nueva .renglon-cuerpo::before {
+  content: ""; position: absolute; left: 14px; top: 17px; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--primario);
+}
+.renglon-cuerpo:focus-visible { outline-offset: -3px; }
+
+/* ── Dona por estado ────────────────────────────────────────────────────── */
+.dona { display: grid; justify-items: center; gap: 12px; padding: 18px; }
+.dona-leyenda { display: grid; gap: 7px; width: 100%; margin: 0; padding: 0; list-style: none; font-size: var(--t-xs); color: var(--tinta-2); }
+.dona-leyenda li { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 3em; align-items: center; gap: 8px; }
+.dona-leyenda i { width: 10px; height: 10px; border-radius: 50%; }
+.dona-leyenda strong { font-weight: 600; color: var(--tinta); }
+.dona-pct { text-align: right; color: var(--tinta-3); }
+.fondo-ok { background: var(--ok); }
+.fondo-aviso { background: var(--aviso); }
+.fondo-neutro { background: var(--neutro); }
+
+/* ── Acciones rápidas ───────────────────────────────────────────────────── */
+.acciones { display: grid; gap: 2px; padding: 8px 12px 14px; }
+.accion {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-1);
+  border: 1px solid transparent; color: var(--tinta-2);
+  font-size: var(--t-sm); font-weight: 500; text-decoration: none;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+.accion .icono { width: 18px; height: 18px; }
+.accion:hover { background: var(--primario-tenue); border-color: var(--primario-borde); color: var(--primario); }
+.accion[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; background: none; border-color: transparent; color: var(--tinta-3); }
+.acciones-nota { padding: 0 18px 14px; font-size: var(--t-xs); color: var(--tinta-3); }
+
+/* ── Adaptable ──────────────────────────────────────────────────────────── */
+@media (max-width: 1300px) {
+  .metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .modulos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tarjetas--tres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tarjetas--tres > :first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
+  .hero { margin: -16px -16px 0; padding: 20px 16px; }
+  .metricas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .metrica--anillo { grid-column: 1 / -1; }
+  .tarjetas--dos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .modulos, .tarjetas--tres { grid-template-columns: minmax(0, 1fr); }
+  .renglon { flex-wrap: wrap; gap: 6px 12px; }
+  .renglon-cuerpo { flex-basis: 100%; }
+  .renglon-lado { justify-items: start; grid-auto-flow: column; align-items: center; gap: 8px; }
+  .tarjeta .hoja-cabeza { flex-wrap: wrap; }
+}

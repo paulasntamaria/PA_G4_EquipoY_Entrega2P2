@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Activos fijos · ETER Patrimonio</title>
+  <script src="assets/js/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="assets/css/eter.css">
+  <link rel="stylesheet" href="assets/css/paginas/activos.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="riel" id="riel"></aside>
+    <main class="main" id="main">
+      <header class="cabecera">
+        <div>
+          <p class="folio"><a href="index.html">Patrimonio</a> / Activos</p>
+          <h1 class="titulo">Activos fijos</h1>
+          <p class="bajada">Cada bien con su placa, sede, estado y valor contable. La columna Préstamo dice quién lo tiene y cuándo debe devolverlo.</p>
+        </div>
+        <div class="cabecera-acciones">
+          <button type="button" class="boton boton--primario" id="btn-registrar" data-accion="registrar">
+            <i data-icono="mas"></i>
+            <span>Registrar activo</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="seccion seccion--tarjeta" aria-labelledby="registro-titulo">
+        <h2 class="seccion-titulo" id="registro-titulo">Registro</h2>
+
+        <div class="filtros" id="filtros">
+          <div class="campo">
+            <span class="etiqueta" id="lbl-estado">Estado</span>
+            <div class="segmentos" role="group" aria-labelledby="lbl-estado" id="segmentos">
+              <button type="button" data-estado="" aria-pressed="true">Todos<span class="cuenta" data-cuenta="">–</span></button>
+              <button type="button" data-estado="ACTIVO" aria-pressed="false">Activos<span class="cuenta" data-cuenta="ACTIVO">–</span></button>
+              <button type="button" data-estado="MANTENIMIENTO" aria-pressed="false">En mantenimiento<span class="cuenta" data-cuenta="MANTENIMIENTO">–</span></button>
+              <button type="button" data-estado="BAJA" aria-pressed="false">De baja<span class="cuenta" data-cuenta="BAJA">–</span></button>
+            </div>
+          </div>
+          <div class="campo filtro-sede">
+            <label for="f-sede">Sede</label>
+            <select class="selector" id="f-sede">
+              <option value="">Todas las sedes</option>
+            </select>
+          </div>
+          <div class="campo filtro-buscar">
+            <label for="f-buscar">Buscar</label>
+            <div class="buscador">
+              <i data-icono="buscar"></i>
+              <input class="entrada" type="search" id="f-buscar" placeholder="Placa, descripción o UNSPSC" autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+        </div>
+
+        <div id="aviso-prestamos" hidden></div>
+        <div id="lista-error" hidden></div>
+        <div id="lista-vacia" hidden></div>
+
+        <div class="registro" id="registro">
+          <div class="tabla-marco">
+            <table class="tabla" aria-describedby="registro-resumen">
+              <thead>
+                <tr>
+                  <th scope="col">Placa</th>
+                  <th scope="col">Descripción</th>
+                  <th scope="col">Sede</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Préstamo</th>
+                  <th scope="col" class="der">Valor contable</th>
+                </tr>
+              </thead>
+              <tbody id="filas"></tbody>
+            </table>
+          </div>
+          <div id="paginador" hidden></div>
+          <div class="registro-pie" id="registro-pie">
+            <p id="registro-resumen" aria-live="polite">Cargando registro…</p>
+            <p class="registro-total"><span class="registro-total-etiqueta">Valor contable</span> <span class="registro-total-cifra" id="registro-total">—</span></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="dialogo" id="dlg-registrar" aria-labelledby="dlg-registrar-titulo">
+    <form id="form-registrar">
+      <div class="dialogo-cabeza">
+        <div>
+          <h2 class="dialogo-titulo" id="dlg-registrar-titulo">Registrar activo</h2>
+          <p class="dialogo-nota">Al guardarlo, el servicio de activos publica ACTIVO_CREADO e inventario abre el kardex del bien con el alta.</p>
+        </div>
+      </div>
+      <div class="dialogo-cuerpo">
+        <div id="registrar-alerta" hidden></div>
+        <div class="rejilla-form">
+          <div class="campo">
+            <label for="r-placa">Placa de inventario</label>
+            <input class="entrada entrada--codigo" id="r-placa" name="placaInventario" required maxlength="50"
+                   pattern="[A-Za-z0-9]+(-[A-Za-z0-9]+)*" placeholder="AF-2026-0001" autocomplete="off" spellcheck="false"
+                   autocapitalize="characters" aria-describedby="r-placa-ayuda">
+            <span class="ayuda" id="r-placa-ayuda">Letras, números y guiones; máx. 50. No se cambia después.<span id="r-placa-sugerencia"></span></span>
+          </div>
+          <div class="campo">
+            <label for="r-unspsc">Código UNSPSC</label>
+            <input class="entrada entrada--codigo" id="r-unspsc" name="codUnspsc" required pattern="[0-9]{8}" minlength="8" maxlength="8"
+                   inputmode="numeric" placeholder="43211503" autocomplete="off" aria-describedby="r-unspsc-ayuda">
+            <span class="ayuda" id="r-unspsc-ayuda">8 dígitos del clasificador de bienes UNSPSC.</span>
+          </div>
+          <div class="campo campo--completo">
+            <label for="r-descripcion">Descripción</label>
+            <input class="entrada" id="r-descripcion" name="descripcion" required minlength="3" maxlength="255"
+                   placeholder="Portátil Dell Latitude 5440" autocomplete="off" aria-describedby="r-descripcion-ayuda">
+            <span class="ayuda" id="r-descripcion-ayuda">De 3 a 255 caracteres: tipo de bien, marca y modelo.</span>
+          </div>
+          <div class="campo">
+            <label for="r-sede">Sede</label>
+            <input class="entrada entrada--codigo" id="r-sede" name="codSede" required maxlength="20" list="lista-sedes"
+                   pattern="[A-Za-z0-9]+(-[A-Za-z0-9]+)*" placeholder="SED-01" autocomplete="off" spellcheck="false"
+                   autocapitalize="characters" aria-describedby="r-sede-ayuda">
+            <datalist id="lista-sedes"></datalist>
+            <span class="ayuda" id="r-sede-ayuda">Código de la sede, máx. 20. Elige una existente o escribe una nueva.</span>
+          </div>
+          <div class="campo">
+            <label for="r-valor">Valor contable (COP)</label>
+            <input class="entrada tabular" id="r-valor" name="valorContable" type="number" required min="0" step="0.0001"
+                   inputmode="decimal" placeholder="4890000" aria-describedby="r-valor-ayuda">
+            <span class="ayuda" id="r-valor-ayuda">Sin puntos de miles, hasta 4 decimales. <span class="valor-vista" id="r-valor-vista"></span></span>
+          </div>
+          <div class="campo campo--completo">
+            <label for="r-estado">Estado inicial</label>
+            <select class="selector" id="r-estado" name="estado" required aria-describedby="r-estado-ayuda">
+              <option value="ACTIVO">Activo</option>
+              <option value="MANTENIMIENTO">En mantenimiento</option>
+            </select>
+            <span class="ayuda" id="r-estado-ayuda">La baja se registra después, desde el detalle del activo.</span>
+          </div>
+        </div>
+      </div>
+      <div class="dialogo-pie">
+        <button type="button" class="boton" data-cerrar>Cancelar</button>
+        <button type="submit" class="boton boton--primario" id="r-enviar">Registrar activo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/paginas/activos.js"></script>
+</body>
+</html>

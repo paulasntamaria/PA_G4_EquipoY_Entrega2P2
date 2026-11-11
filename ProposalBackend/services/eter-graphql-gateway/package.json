@@ -1,0 +1,22 @@
+{
+  "name": "eter-graphql-gateway",
+  "version": "1.0.0",
+  "description": "API Gateway GraphQL de ETER: unifica activos, prestamos, inventario y notificaciones",
+  "type": "module",
+  "main": "src/start.js",
+  "scripts": {
+    "start": "node src/start.js",
+    "dev": "node --watch src/start.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "graphql": "^16.14.2",
+    "graphql-ws": "^5.16.2",
+    "graphql-yoga": "^5.24.6",
+    "jsonwebtoken": "^9.0.3",
+    "ws": "^8.22.0"
+  }
+}

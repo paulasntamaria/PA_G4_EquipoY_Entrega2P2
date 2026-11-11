@@ -1,0 +1,58 @@
+/* ETER · Registro de activos (activos.html). Solo tokens de eter.css. */
+
+/* Filtros: segmentos alineados con la altura de los campos */
+.filtros .segmentos { min-height: 40px; align-items: center; }
+.filtro-sede { flex: 1 1 170px; max-width: 240px; }
+.filtro-buscar { flex: 3 1 260px; }
+@media (max-width: 560px) {
+  .filtro-sede { max-width: none; }
+}
+
+/* La tabla, su paginación y el renglón de totales ocupan todo el ancho de la tarjeta */
+.registro { display: grid; min-width: 0; margin-inline: calc(-1 * var(--tarjeta-pad)); }
+.registro .paginador { margin: 0; }
+/* position: relative contiene los .sr (absolutos) de las celdas; sin esto
+   escapan del scroll de la tabla y estiran la página en móvil. */
+.registro .tabla-marco { position: relative; margin-inline: 0; }
+.registro-pie {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid var(--regla);
+  background: var(--hoja-2);
+  font-size: var(--t-sm); color: var(--tinta-2);
+}
+.registro-pie strong { color: var(--tinta); font-weight: 650; font-variant-numeric: tabular-nums; }
+.registro-pie .resumen-vencidos { color: var(--peligro); }
+.registro-total { display: flex; align-items: baseline; gap: 12px; margin-left: auto; }
+.registro-total-etiqueta {
+  font: 600 var(--t-xxs)/1.2 var(--f-texto);
+  letter-spacing: 0.09em; text-transform: uppercase; color: var(--tinta-2);
+}
+.registro-total-cifra {
+  font: 400 var(--t-lg)/1 var(--f-titulo);
+  font-variant-numeric: tabular-nums; color: var(--tinta);
+}
+
+/* Celdas */
+.celda-descripcion { min-width: 230px; }
+.celda-prestamo { white-space: nowrap; }
+.celda-valor { font-weight: 500; }
+.tabla .sub.plazo-vencido { color: var(--peligro); font-weight: 600; }
+.tabla .guion { color: var(--regla-2); }
+.tabla tr[data-estado="BAJA"] .principal { color: var(--tinta-2); font-weight: 500; }
+.tabla tr[data-estado="BAJA"] .celda-valor { color: var(--tinta-3); }
+.tabla tbody tr.fila-enlace:focus-within { background: color-mix(in srgb, var(--primario-tenue) 40%, var(--hoja)); }
+
+.reintentar { margin-top: 10px; }
+
+/* Diálogo de registro */
+.dialogo-nota { margin-top: 6px; max-width: 52ch; font-size: var(--t-xs); color: var(--tinta-3); }
+.boton-texto {
+  all: unset; cursor: pointer;
+  font: 500 0.95em/1 var(--f-codigo); color: var(--tinta);
+  text-decoration: underline; text-decoration-color: var(--primario); text-underline-offset: 3px;
+}
+.boton-texto:hover { text-decoration-thickness: 2px; }
+.boton-texto:focus-visible { outline: 2px solid var(--primario); outline-offset: 2px; }
+.valor-vista { color: var(--tinta-2); font-variant-numeric: tabular-nums; }
+.entrada[aria-invalid="true"], .selector[aria-invalid="true"] { border-color: var(--peligro); }

@@ -1,0 +1,74 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: eter-inventario-service
+  datasource:
+    url: "${ETER_INVENTARIO_DB_URL:jdbc:postgresql://localhost:5433/eterdb?currentSchema=inventario}"
+    username: "${ETER_DB_USER:postgres}"
+    password: "${ETER_DB_PASSWORD:eter_dev_2026}"
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: inventario
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    schemas: inventario
+    default-schema: inventario
+    create-schemas: true
+  data:
+    redis:
+      host: "${ETER_REDIS_HOST:localhost}"
+      port: "${ETER_REDIS_PORT:6379}"
+      # Si Redis no responde rapido, el consumidor sigue y la base frena duplicados.
+      timeout: 2s
+      connect-timeout: 2s
+  kafka:
+    bootstrap-servers: "${ETER_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}"
+    consumer:
+      # Grupo propio: recibe TODOS los eventos aunque notificaciones tambien los lea.
+      group-id: eter-inventario-v1
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      # Solo lo usa el DeadLetterPublishingRecoverer para escribir en los .DLT.
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+eter:
+  jwt:
+    secret: "${ETER_JWT_SECRET:eter-jwt-secret-development-only-CHANGE-IN-PRODUCTION-9f4a8c7e}"
+  security:
+    # Roles que pueden crear, modificar o eliminar (POST/PUT/PATCH/DELETE).
+    # Las consultas (GET) solo requieren estar autenticado.
+    roles-escritura: "${ETER_ROLES_ESCRITURA:ADMIN}"
+  services:
+    activos-base-url: "${ETER_ACTIVOS_BASE_URL:http://localhost:8087}"
+    # Tiempo maximo de espera a activos-service antes de responder 503.
+    activos-timeout-ms: "${ETER_ACTIVOS_TIMEOUT_MS:3000}"
+  kafka:
+    topic-prestamos: "${ETER_KAFKA_TOPIC_PRESTAMOS:eter.prestamos.eventos.v1}"
+    topic-activos: "${ETER_KAFKA_TOPIC_ACTIVOS:eter.activos.eventos.v1}"
+  idempotencia:
+    # Clave eter:idem:{grupo}:{eventId}. PROCESANDO dura poco (si la instancia
+    # muere a mitad, otra puede tomar el evento); PROCESADO dura 7 dias.
+    ttl-procesando: PT5M
+    ttl-procesado: P7D
+
+management:
+  health:
+    # Redis caido no debe marcar el servicio como DOWN: hay respaldo en PostgreSQL.
+    redis:
+      enabled: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

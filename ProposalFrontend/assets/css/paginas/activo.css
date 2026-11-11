@@ -1,0 +1,102 @@
+/* ETER · Detalle de un activo (activo.html). Solo tokens de eter.css. */
+
+/* Cabecera */
+.cabecera-cuerpo { flex: 1 1 420px; min-width: 0; }
+.cabecera-estado { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.esqueleto-titulo { display: block; height: 1.6rem; width: min(420px, 80%); }
+
+/* Rejilla y secciones */
+.detalle > .pila { gap: 28px; }
+.seccion-cabeza { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.seccion-cabeza .seccion-titulo { flex: 1 1 auto; min-width: 0; }
+.seccion-cuenta { font: 500 var(--t-xxs)/1 var(--f-codigo); letter-spacing: 0; color: var(--tinta-3); }
+.enlace-seccion {
+  font-size: var(--t-xs); font-weight: 500; white-space: nowrap;
+  color: var(--primario); text-decoration: none;
+}
+.enlace-seccion:hover { text-decoration: underline; text-underline-offset: 3px; }
+.detalle-vacio { display: grid; }
+/* Contiene los .sr (absolutos) de las celdas dentro del scroll de la tabla. */
+.detalle .tabla-marco { position: relative; }
+.reintentar { margin-top: 10px; }
+
+/* Ficha del bien: la etiqueta de inventario y sus datos */
+.identidad { container-type: inline-size; padding: 22px; }
+.identidad-rejilla { display: grid; gap: 22px; }
+@container (min-width: 600px) {
+  .identidad-rejilla { grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 32px; align-items: start; }
+}
+.identidad-placa { display: grid; justify-items: start; gap: 12px; margin: 0; }
+.identidad-placa .placa { width: min(100%, 320px); }
+.identidad-placa figcaption { max-width: 36ch; font-size: var(--t-xs); color: var(--tinta-3); }
+
+.ficha--renglones { grid-template-columns: minmax(0, 1fr); border-top: 1px solid var(--regla); }
+.ficha--renglones > div {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px;
+  padding: 10px 0;
+}
+.ficha--renglones dd { text-align: right; }
+.ficha-cifra { font: 400 var(--t-xl)/1 var(--f-titulo); font-variant-numeric: tabular-nums; }
+
+/* Préstamo vigente */
+.prestamo { overflow: hidden; }
+.prestamo--vencido { border-color: color-mix(in srgb, var(--peligro) 45%, var(--regla)); }
+.prestamo-cabeza {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px;
+  padding: 18px 20px 8px;
+}
+.prestamo-custodio { display: grid; gap: 4px; min-width: 0; }
+.prestamo-doc { font: 600 var(--t-xl)/1.1 var(--f-codigo); letter-spacing: 0.02em; overflow-wrap: anywhere; }
+.prestamo-ficha { margin: 6px 20px 0; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.prestamo-ficha > div { border-bottom: 0; border-top: 1px solid var(--regla); }
+.prestamo-plazo dd { font: 400 var(--t-lg)/1.2 var(--f-titulo); }
+.prestamo--vencido .prestamo-plazo dd { color: var(--peligro); }
+.dd-nota { display: block; margin-top: 2px; font-size: var(--t-xs); font-weight: 400; color: var(--tinta-3); }
+.prestamo-pie {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  margin-top: 8px; padding: 12px 20px; border-top: 1px solid var(--regla); background: var(--hoja-2);
+}
+.prestamo-id {
+  min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--t-xs); color: var(--tinta-3);
+}
+.tabla .guion { color: var(--regla-2); }
+
+/* Kardex: renglones con fecha y hora a la izquierda */
+.kardex { padding: 2px 16px; }
+.kardex .cronologia li { grid-template-columns: 86px 14px minmax(0, 1fr); }
+.kardex .cronologia time { display: grid; align-content: start; line-height: 1.4; }
+.kardex .cronologia time .hora { color: var(--tinta-3); opacity: 0.8; }
+.mov-tipo { display: block; font: 400 var(--t-md)/1.25 var(--f-titulo); }
+.mov-doc { display: block; margin-top: 2px; font-size: var(--t-xs); color: var(--tinta-2); }
+.cronologia li[data-tipo="ALTA"] .hito::after { border-color: var(--ok); }
+.cronologia li[data-tipo="DEVOLUCION"] .hito::after { border-color: var(--ok); }
+.cronologia li[data-tipo="PRESTAMO"] .hito::after { border-color: var(--info); }
+.cronologia li[data-tipo="MANTENIMIENTO"] .hito::after { border-color: var(--aviso); }
+.cronologia li[data-tipo="BAJA"] .hito::after { border-color: var(--peligro); background: var(--peligro); }
+.kardex-pendiente time, .kardex-pendiente .mov-tipo { color: var(--aviso); }
+.cronologia .kardex-pendiente .hito::after {
+  border: 2px dashed var(--aviso); background: var(--hoja);
+  animation: latido 1.4s ease-in-out infinite;
+}
+@keyframes latido { 50% { opacity: 0.3; } }
+.kardex-recargar { margin-top: 8px; }
+.kardex-mas { padding: 10px 0 12px; border-top: 1px solid var(--regla); font-size: var(--t-xs); color: var(--tinta-3); }
+
+/* Custodios asignados */
+.custodios { list-style: none; margin: 0; padding: 0 16px; }
+.custodios li {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 2px 12px;
+  padding: 11px 0; border-bottom: 1px solid var(--regla);
+}
+.custodios li:last-child { border-bottom: 0; }
+.custodios .custodio-doc { font-size: var(--t-md); font-weight: 600; }
+.custodio-rel { font-size: var(--t-xs); color: var(--tinta-3); text-align: right; }
+.custodio-acta { grid-column: 1 / -1; font-size: var(--t-xs); color: var(--tinta-2); }
+
+/* Diálogos */
+.dialogo-nota { margin-top: 6px; max-width: 54ch; font-size: var(--t-xs); color: var(--tinta-3); }
+.ficha--dialogo { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); border-top: 1px solid var(--regla); }
+.texto-peligro { color: var(--peligro); }
+.valor-vista { color: var(--tinta-2); font-variant-numeric: tabular-nums; }
+.entrada[aria-invalid="true"], .selector[aria-invalid="true"] { border-color: var(--peligro); }

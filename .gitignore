@@ -1,0 +1,45 @@
+# --- Copias de entregas anteriores (no forman parte de esta entrega) ---
+/PA_G4_EquipoY_Entrega1P2/
+/PA_G4_EquipoY_Entrega2P2/
+
+# --- Variables de entorno (la plantilla es .env.example) ---
+.env
+.env.*
+!.env.example
+
+# --- Java / Gradle: salidas de compilacion ---
+.gradle/
+build/
+bin/
+out/
+*.class
+*.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# --- Node ---
+node_modules/
+npm-debug.log*
+
+# --- IDE y herramientas locales ---
+.vscode/
+.idea/
+*.iml
+.settings/
+.project
+.classpath
+.factorypath
+.github/modernize/
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Respaldos, temporales y bloqueos de Office ---
+*.bak
+*.tmp
+*.log
+~$*
+
+# --- Material de referencia externo (no es codigo de este proyecto) ---
+ProposalFrontend/Eter-frontend-main.zip

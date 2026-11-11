@@ -1,0 +1,172 @@
+"Fecha y hora ISO-8601 (ej. 2026-05-01T08:00:00)."
+scalar DateTime
+
+enum EstadoActivo { ACTIVO MANTENIMIENTO BAJA }
+enum EstadoPrestamo { VIGENTE DEVUELTO CANCELADO }
+enum TipoMovimiento { ALTA BAJA TRASLADO MANTENIMIENTO ASIGNACION PRESTAMO DEVOLUCION }
+
+type Usuario {
+  email: String!
+  nitUniv: String!
+  roles: [String!]!
+}
+
+type ActivoFijo {
+  nitUniv: String!
+  placaInventario: String!
+  descripcion: String!
+  codUnspsc: String!
+  codSede: String!
+  valorContable: Float!
+  estado: EstadoActivo!
+  "Solo se consulta inventario si el cliente pide este campo."
+  asignaciones: [Asignacion!]!
+  movimientos(tipo: TipoMovimiento): [Movimiento!]!
+  prestamos(estado: EstadoPrestamo): [Prestamo!]!
+  prestamoVigente: Prestamo
+}
+
+type Asignacion {
+  nitUniv: String!
+  placaInventario: String!
+  numDocumento: String!
+  fechaHoraActa: DateTime!
+  activo: ActivoFijo
+}
+
+type Movimiento {
+  idMovimiento: ID!
+  nitUniv: String!
+  placaInventario: String!
+  tipoMovimiento: TipoMovimiento!
+  fechaMovimiento: DateTime!
+  numDocumento: String!
+  activo: ActivoFijo
+}
+
+type Prestamo {
+  idPrestamo: ID!
+  nitUniv: String!
+  placaInventario: String!
+  numDocumento: String!
+  fechaSalida: DateTime!
+  fechaDevolucionPactada: DateTime!
+  fechaDevolucionReal: DateTime
+  estado: EstadoPrestamo!
+  vencido: Boolean!
+  activo: ActivoFijo
+}
+
+type Notificacion {
+  idNotificacion: ID!
+  eventId: ID
+  tipo: String!
+  titulo: String!
+  mensaje: String!
+  leida: Boolean!
+  creadaEn: DateTime!
+  leidaEn: DateTime
+  placaInventario: String
+  destinatarioEmail: String
+  "Detalle del activo asociado (una llamada extra, solo si se pide)."
+  activo: ActivoFijo
+}
+
+type NotificacionPagina {
+  items: [Notificacion!]!
+  page: Int!
+  size: Int!
+  totalElements: Int!
+  noLeidas: Int!
+}
+
+"Resumen para la pantalla de inicio, armado en paralelo desde varios servicios."
+type Resumen {
+  totalActivos: Int!
+  activosPorEstado: [ConteoEstado!]!
+  prestamosVigentes: Int!
+  prestamosVencidos: Int!
+  notificacionesNoLeidas: Int!
+}
+
+type ConteoEstado {
+  estado: EstadoActivo!
+  total: Int!
+}
+
+type Query {
+  me: Usuario!
+  resumen: Resumen!
+
+  activos(estado: EstadoActivo, codSede: String): [ActivoFijo!]!
+  activo(placaInventario: String!): ActivoFijo
+
+  asignaciones(placaInventario: String, numDocumento: String): [Asignacion!]!
+  movimientos(placaInventario: String, tipo: TipoMovimiento): [Movimiento!]!
+  prestamos(placaInventario: String, estado: EstadoPrestamo, soloVencidos: Boolean): [Prestamo!]!
+
+  notificaciones(page: Int = 0, size: Int = 20, soloNoLeidas: Boolean = false): NotificacionPagina!
+  notificacionesNoLeidas: Int!
+}
+
+input CrearActivoInput {
+  placaInventario: String!
+  descripcion: String!
+  codUnspsc: String!
+  codSede: String!
+  valorContable: Float!
+  estado: EstadoActivo!
+}
+
+input ActualizarActivoInput {
+  descripcion: String!
+  codUnspsc: String!
+  codSede: String!
+  valorContable: Float!
+  estado: EstadoActivo!
+}
+
+input CrearAsignacionInput {
+  placaInventario: String!
+  numDocumento: String!
+  fechaHoraActa: DateTime!
+}
+
+input RegistrarMovimientoInput {
+  placaInventario: String!
+  tipoMovimiento: TipoMovimiento!
+  fechaMovimiento: DateTime!
+  numDocumento: String!
+  "Si se repite, se devuelve el movimiento ya registrado (header Idempotency-Key)."
+  idempotencyKey: String
+}
+
+input CrearPrestamoInput {
+  placaInventario: String!
+  numDocumento: String!
+  fechaSalida: DateTime!
+  fechaDevolucionPactada: DateTime!
+}
+
+type Mutation {
+  "Requiere rol de escritura (ej. ADMIN)."
+  crearActivo(input: CrearActivoInput!): ActivoFijo!
+  actualizarActivo(placaInventario: String!, input: ActualizarActivoInput!): ActivoFijo!
+  "Baja logica: devuelve el activo ya en estado BAJA."
+  darDeBajaActivo(placaInventario: String!): ActivoFijo!
+
+  crearAsignacion(input: CrearAsignacionInput!): Asignacion!
+  registrarMovimiento(input: RegistrarMovimientoInput!): Movimiento!
+
+  crearPrestamo(input: CrearPrestamoInput!): Prestamo!
+  registrarDevolucion(idPrestamo: ID!, fechaDevolucionReal: DateTime!): Prestamo!
+
+  marcarNotificacionLeida(idNotificacion: ID!): Notificacion!
+  "Devuelve las no leidas restantes (0)."
+  marcarTodasNotificacionesLeidas: Int!
+}
+
+type Subscription {
+  "Nuevas notificaciones del usuario autenticado (WebSocket, protocolo graphql-ws)."
+  notificacionRecibida: Notificacion!
+}

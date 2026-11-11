@@ -1,0 +1,3 @@
+package com.eter.eterbackend.activos.infrastructure.adapter.in.rest.mapper;
+import org.springframework.stereotype.Component; import com.eter.eterbackend.activos.domain.model.PrestamoTemporal; import com.eter.eterbackend.activos.infrastructure.adapter.in.rest.dto.ActivosDtos;
+@Component public class ActivosRestMapper { public ActivosDtos.PrestamoTemporalResponse toResponse(PrestamoTemporal p){return new ActivosDtos.PrestamoTemporalResponse(p.idPrestamo(),p.nitUniv(),p.placaInventario(),p.numDocumento(),p.fechaSalida(),p.fechaDevolucionPactada(),p.fechaDevolucionReal(),p.estado(),p.vencido());} }

@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inventario · ETER Patrimonio</title>
+  <script src="assets/js/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="assets/css/eter.css">
+  <link rel="stylesheet" href="assets/css/paginas/inventario.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="riel" id="riel"></aside>
+    <main class="main" id="main">
+      <header class="cabecera">
+        <div>
+          <p class="folio"><a href="index.html">Patrimonio</a> / Inventario</p>
+          <h1 class="titulo">Inventario</h1>
+          <p class="bajada">El kardex de cada activo, asiento por asiento, y las actas que lo dejan a cargo de un custodio.</p>
+          <p class="solo-lectura" id="solo-lectura" hidden>Solo lectura: tu rol no permite registrar movimientos ni actas.</p>
+        </div>
+        <div class="cabecera-acciones">
+          <button type="button" class="boton" id="btn-asignacion">Nueva asignación</button>
+          <button type="button" class="boton boton--primario" id="btn-movimiento"><i data-icono="mas"></i><span>Registrar movimiento</span></button>
+        </div>
+      </header>
+
+      <div class="pestanas" role="tablist" aria-label="Libros de inventario" id="pestanas">
+        <button type="button" role="tab" id="tab-kardex" aria-controls="panel-kardex" aria-selected="true">Kardex<span class="cuenta" data-cuenta="kardex"></span></button>
+        <button type="button" role="tab" id="tab-asignaciones" aria-controls="panel-asignaciones" aria-selected="false" tabindex="-1">Asignaciones<span class="cuenta" data-cuenta="asignaciones"></span></button>
+      </div>
+
+      <!-- Kardex -->
+      <section class="panel" id="panel-kardex" role="tabpanel" aria-labelledby="tab-kardex">
+        <div class="resumen" id="resumen-kardex" aria-busy="true">
+          <div class="resumen-cabeza">
+            <h2 class="resumen-titulo">Asientos por tipo</h2>
+            <p class="resumen-periodo" id="periodo-kardex">Cargando período…</p>
+          </div>
+          <div class="conteos" id="conteos-kardex" role="group" aria-label="Asientos por tipo de movimiento. Pulsa un tipo para filtrar el kardex."></div>
+        </div>
+
+        <div class="seccion seccion--tarjeta">
+        <form class="filtros" id="filtros-kardex" role="search" aria-label="Filtrar el kardex">
+          <div class="campo campo--buscar">
+            <label for="k-buscar">Placa o descripción</label>
+            <div class="buscador">
+              <i data-icono="buscar"></i>
+              <input class="entrada" type="search" id="k-buscar" placeholder="AF-2026-0001, portátil, microscopio…" autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+          <div class="campo">
+            <label for="k-tipo">Tipo de movimiento</label>
+            <select class="selector" id="k-tipo">
+              <option value="">Todos los tipos</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="k-doc">Documento</label>
+            <input class="entrada entrada--codigo" id="k-doc" placeholder="Ej. 79123456" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="filtros-acciones">
+            <button type="button" class="boton boton--plano" id="k-limpiar" hidden>Limpiar filtros</button>
+            <button type="button" class="boton" id="k-recargar">Volver a consultar</button>
+          </div>
+        </form>
+
+        <p class="nota-libro">
+          <strong>Asientos automáticos.</strong>
+          Las altas, bajas, préstamos y devoluciones no se escriben a mano: inventario las asienta al consumir
+          <span class="mono">eter.activos.eventos.v1</span> y <span class="mono">eter.prestamos.eventos.v1</span>, unos segundos después de la operación.
+        </p>
+
+        <div id="aviso-kardex"></div>
+        <div class="tabla-marco" id="marco-kardex">
+          <table class="tabla tabla--kardex kardex-cronologico" id="tabla-kardex">
+            <caption class="sr">Kardex de movimientos de inventario, del más reciente al más antiguo</caption>
+            <thead>
+              <tr>
+                <th scope="col" title="Número de asiento en orden cronológico">Folio</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Placa</th>
+                <th scope="col">Activo</th>
+                <th scope="col">Movimiento</th>
+                <th scope="col">Documento</th>
+                <th scope="col">Origen</th>
+              </tr>
+            </thead>
+            <tbody id="filas-kardex"></tbody>
+          </table>
+        </div>
+        <div id="paginador-kardex" hidden></div>
+        <p class="registro-pie" id="pie-kardex" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- Asignaciones -->
+      <section class="panel" id="panel-asignaciones" role="tabpanel" aria-labelledby="tab-asignaciones" hidden>
+        <div class="seccion seccion--tarjeta">
+        <form class="filtros" id="filtros-asignaciones" role="search" aria-label="Buscar actas de asignación">
+          <div class="campo campo--buscar">
+            <label for="a-buscar">Placa, activo o documento del custodio</label>
+            <div class="buscador">
+              <i data-icono="buscar"></i>
+              <input class="entrada" type="search" id="a-buscar" placeholder="AF-2026-0006, tableta, 79123456…" autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+          <div class="filtros-acciones">
+            <button type="button" class="boton" id="a-recargar">Volver a consultar</button>
+          </div>
+        </form>
+
+        <p class="nota-libro">
+          <strong>Actas de asignación.</strong>
+          Cada acta deja un activo a cargo de un custodio, identificado por su documento. Un activo no puede asignarse dos veces al mismo documento.
+        </p>
+
+        <div id="aviso-asignaciones"></div>
+        <div class="tabla-marco" id="marco-asignaciones">
+          <table class="tabla">
+            <caption class="sr">Actas de asignación de activos a custodios, de la más reciente a la más antigua</caption>
+            <thead>
+              <tr>
+                <th scope="col">Placa</th>
+                <th scope="col">Activo</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Custodio</th>
+                <th scope="col">Fecha del acta</th>
+              </tr>
+            </thead>
+            <tbody id="filas-asignaciones"></tbody>
+          </table>
+        </div>
+        <div id="paginador-asignaciones" hidden></div>
+        <p class="registro-pie" id="pie-asignaciones" aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <datalist id="lista-placas"></datalist>
+
+  <!-- Registrar movimiento -->
+  <dialog class="dialogo" id="dlg-movimiento" aria-labelledby="dlg-movimiento-titulo">
+    <form id="form-movimiento" novalidate>
+      <div class="dialogo-cabeza">
+        <div>
+          <p class="folio">Kardex · asiento manual</p>
+          <h2 class="dialogo-titulo" id="dlg-movimiento-titulo">Registrar movimiento</h2>
+        </div>
+        <button type="button" class="boton boton--plano boton--sm" data-cerrar>Cerrar</button>
+      </div>
+      <div class="dialogo-cuerpo">
+        <div id="alerta-movimiento"></div>
+        <div class="rejilla-form">
+          <div class="campo">
+            <label for="m-placa">Placa de inventario</label>
+            <input class="entrada entrada--codigo" id="m-placa" name="placaInventario" list="lista-placas" maxlength="50"
+                   placeholder="AF-2026-0001" autocomplete="off" spellcheck="false" autocapitalize="characters" aria-describedby="m-placa-pista">
+            <span class="ayuda pista" id="m-placa-pista" data-base="El activo debe existir en la universidad."></span>
+          </div>
+          <div class="campo">
+            <label for="m-tipo">Tipo de movimiento</label>
+            <select class="selector" id="m-tipo" name="tipoMovimiento"></select>
+          </div>
+          <div class="campo">
+            <label for="m-fecha">Fecha y hora del movimiento</label>
+            <input class="entrada" type="datetime-local" id="m-fecha" name="fechaMovimiento">
+          </div>
+          <div class="campo">
+            <label for="m-doc">Documento responsable</label>
+            <input class="entrada entrada--codigo" id="m-doc" name="numDocumento" maxlength="20" inputmode="text"
+                   placeholder="79123456" autocomplete="off" spellcheck="false" aria-describedby="m-doc-ayuda">
+            <span class="ayuda" id="m-doc-ayuda">De 5 a 20 letras o números, sin espacios. Por defecto, el tuyo.</span>
+          </div>
+        </div>
+        <div class="alerta alerta--aviso" id="m-aviso-kafka" hidden>
+          <strong>Este tipo llega solo por Kafka</strong>
+          <span id="m-aviso-kafka-texto"></span>
+        </div>
+        <div class="clave">
+          <span class="etiqueta">Clave de idempotencia</span>
+          <code class="clave-valor" id="m-clave"></code>
+          <p class="ayuda">Viaja en la cabecera Idempotency-Key. Si este mismo formulario se reenvía (doble clic, corte de red), inventario devuelve el movimiento ya registrado en vez de duplicarlo. Cada vez que abres el diálogo se genera otra.</p>
+          <input type="hidden" name="idempotencyKey" id="m-clave-input">
+        </div>
+      </div>
+      <div class="dialogo-pie">
+        <button type="button" class="boton" data-cerrar>Cancelar</button>
+        <button type="submit" class="boton boton--primario" id="m-enviar">Asentar en el kardex</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Nueva asignación -->
+  <dialog class="dialogo" id="dlg-asignacion" aria-labelledby="dlg-asignacion-titulo">
+    <form id="form-asignacion" novalidate>
+      <div class="dialogo-cabeza">
+        <div>
+          <p class="folio">Asignaciones · acta</p>
+          <h2 class="dialogo-titulo" id="dlg-asignacion-titulo">Nueva asignación</h2>
+        </div>
+        <button type="button" class="boton boton--plano boton--sm" data-cerrar>Cerrar</button>
+      </div>
+      <div class="dialogo-cuerpo">
+        <div id="alerta-asignacion"></div>
+        <div class="rejilla-form">
+          <div class="campo">
+            <label for="s-placa">Placa de inventario</label>
+            <input class="entrada entrada--codigo" id="s-placa" name="placaInventario" list="lista-placas" maxlength="50"
+                   placeholder="AF-2026-0006" autocomplete="off" spellcheck="false" autocapitalize="characters" aria-describedby="s-placa-pista">
+            <span class="ayuda pista" id="s-placa-pista" data-base="El activo debe existir en la universidad."></span>
+          </div>
+          <div class="campo">
+            <label for="s-doc">Documento del custodio</label>
+            <input class="entrada entrada--codigo" id="s-doc" name="numDocumento" maxlength="20"
+                   placeholder="1012345678" autocomplete="off" spellcheck="false" aria-describedby="s-doc-ayuda">
+            <span class="ayuda" id="s-doc-ayuda">De 5 a 20 letras o números, sin espacios.</span>
+          </div>
+          <div class="campo campo--completo">
+            <label for="s-fecha">Fecha y hora del acta</label>
+            <input class="entrada" type="datetime-local" id="s-fecha" name="fechaHoraActa">
+          </div>
+        </div>
+        <div class="casilla-bloque">
+          <label class="casilla" for="s-asentar">
+            <input type="checkbox" id="s-asentar" checked>
+            <span>Asentar también el movimiento de asignación en el kardex</span>
+          </label>
+          <span class="ayuda">El acta no pasa por Kafka: sin esta casilla, el kardex no registra la asignación.</span>
+        </div>
+      </div>
+      <div class="dialogo-pie">
+        <button type="button" class="boton" data-cerrar>Cancelar</button>
+        <button type="submit" class="boton boton--primario" id="s-enviar">Registrar acta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/paginas/inventario.js"></script>
+</body>
+</html>

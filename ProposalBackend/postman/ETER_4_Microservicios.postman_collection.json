@@ -1,0 +1,1133 @@
+{
+	"info": {
+		"name": "ETER - Ecosistema 4 Microservicios (Entrega 2P2 Kafka)",
+		"description": "Colección para Activos (8087), Préstamos (8088), Inventario (8089) y Notificaciones (8090). Pegue el JWT en {{token}} (python tools/generar_token.py). La carpeta '6. Flujo Kafka' recorre el flujo asíncrono: cada paso verifica que el evento llegó al consumidor.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "activosUrl",
+			"value": "http://localhost:8087"
+		},
+		{
+			"key": "prestamosUrl",
+			"value": "http://localhost:8088"
+		},
+		{
+			"key": "inventarioUrl",
+			"value": "http://localhost:8089"
+		},
+		{
+			"key": "notificacionesUrl",
+			"value": "http://localhost:8090"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "nitUniv",
+			"value": "900123456-1"
+		},
+		{
+			"key": "placa",
+			"value": "AF-2026-0001"
+		},
+		{
+			"key": "idPrestamo",
+			"value": ""
+		},
+		{
+			"key": "idNotificacion",
+			"value": ""
+		},
+		{
+			"key": "placaKafka",
+			"value": ""
+		},
+		{
+			"key": "fechaSalidaKafka",
+			"value": ""
+		},
+		{
+			"key": "fechaPactadaKafka",
+			"value": ""
+		},
+		{
+			"key": "fechaDevolucionKafka",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "0. Salud de los 4 microservicios",
+			"item": [
+				{
+					"name": "Health - Activos (8087)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{activosUrl}}/actuator/health",
+							"host": [
+								"{{activosUrl}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Comprueba que el microservicio Activos está iniciado."
+					}
+				},
+				{
+					"name": "Health - Préstamos (8088)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{prestamosUrl}}/actuator/health",
+							"host": [
+								"{{prestamosUrl}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Comprueba que el microservicio Préstamos está iniciado."
+					}
+				},
+				{
+					"name": "Health - Inventario (8089)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{inventarioUrl}}/actuator/health",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Comprueba que el microservicio Inventario está iniciado."
+					}
+				},
+				{
+					"name": "Health - Notificaciones (8090)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{notificacionesUrl}}/actuator/health",
+							"host": [
+								"{{notificacionesUrl}}"
+							],
+							"path": [
+								"actuator",
+								"health"
+							]
+						},
+						"description": "Comprueba que el microservicio Notificaciones está iniciado."
+					}
+				}
+			]
+		},
+		{
+			"name": "1. Activos Fijos",
+			"item": [
+				{
+					"name": "Listar activos fijos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{activosUrl}}/api/v1/activos/activos-fijos?nitUniv={{nitUniv}}",
+							"host": [
+								"{{activosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"activos-fijos"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								}
+							]
+						},
+						"description": ""
+					}
+				},
+				{
+					"name": "Crear activo fijo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{activosUrl}}/api/v1/activos/activos-fijos",
+							"host": [
+								"{{activosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"activos-fijos"
+							]
+						},
+						"description": "",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nitUniv\": \"{{nitUniv}}\",\n  \"placaInventario\": \"AF-2026-0003\",\n  \"descripcion\": \"Impresora multifuncional Epson L5590\",\n  \"codUnspsc\": \"44101501\",\n  \"codSede\": \"SED-01\",\n  \"valorContable\": 1800000,\n  \"estado\": \"ACTIVO\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Obtener activo por clave compuesta",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{activosUrl}}/api/v1/activos/activos-fijos/{{nitUniv}}/{{placa}}",
+							"host": [
+								"{{activosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"activos-fijos",
+								"{{nitUniv}}",
+								"{{placa}}"
+							]
+						},
+						"description": ""
+					}
+				},
+				{
+					"name": "Actualizar activo",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{activosUrl}}/api/v1/activos/activos-fijos/{{nitUniv}}/{{placa}}",
+							"host": [
+								"{{activosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"activos-fijos",
+								"{{nitUniv}}",
+								"{{placa}}"
+							]
+						},
+						"description": "",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"descripcion\": \"Computador portatil HP EliteBook 840 G9 (actualizado)\",\n  \"codUnspsc\": \"43211503\",\n  \"codSede\": \"SED-02\",\n  \"valorContable\": 3200000,\n  \"estado\": \"MANTENIMIENTO\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Dar de baja (logica)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{activosUrl}}/api/v1/activos/activos-fijos/{{nitUniv}}/AF-2026-0002",
+							"host": [
+								"{{activosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"activos-fijos",
+								"{{nitUniv}}",
+								"AF-2026-0002"
+							]
+						},
+						"description": "Responde 204. El registro se conserva con estado BAJA."
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Asignaciones",
+			"item": [
+				{
+					"name": "Listar asignaciones",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{inventarioUrl}}/api/v1/activos/asignaciones?nitUniv={{nitUniv}}",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"asignaciones"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								}
+							]
+						},
+						"description": ""
+					}
+				},
+				{
+					"name": "Crear asignacion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{inventarioUrl}}/api/v1/activos/asignaciones",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"asignaciones"
+							]
+						},
+						"description": "",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nitUniv\": \"{{nitUniv}}\",\n  \"placaInventario\": \"{{placa}}\",\n  \"numDocumento\": \"79123456\",\n  \"fechaHoraActa\": \"2026-09-16T09:00:00\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Prestamos",
+			"item": [
+				{
+					"name": "Listar prestamos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{prestamosUrl}}/api/v1/activos/prestamos?nitUniv={{nitUniv}}",
+							"host": [
+								"{{prestamosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"prestamos"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								}
+							]
+						},
+						"description": ""
+					}
+				},
+				{
+					"name": "Listar solo VIGENTES",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{prestamosUrl}}/api/v1/activos/prestamos?nitUniv={{nitUniv}}&estado=VIGENTE",
+							"host": [
+								"{{prestamosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"prestamos"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								},
+								{
+									"key": "estado",
+									"value": "VIGENTE"
+								}
+							]
+						},
+						"description": ""
+					}
+				},
+				{
+					"name": "Crear prestamo YA VENCIDO (para la demo)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{prestamosUrl}}/api/v1/activos/prestamos",
+							"host": [
+								"{{prestamosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"prestamos"
+							]
+						},
+						"description": "Fecha pactada en el pasado para que el vigia lo detecte de una. Copia el idPrestamo de la respuesta a la variable {{idPrestamo}}.",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nitUniv\": \"{{nitUniv}}\",\n  \"placaInventario\": \"{{placa}}\",\n  \"numDocumento\": \"79123456\",\n  \"fechaSalida\": \"2026-09-01T08:00:00\",\n  \"fechaDevolucionPactada\": \"2026-09-05T18:00:00\"\n}"
+						}
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"  const body = pm.response.json();",
+									"  pm.collectionVariables.set(\"idPrestamo\", body.idPrestamo);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Registrar devolucion",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{prestamosUrl}}/api/v1/activos/prestamos/{{idPrestamo}}/devolucion",
+							"host": [
+								"{{prestamosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"prestamos",
+								"{{idPrestamo}}",
+								"devolucion"
+							]
+						},
+						"description": "La segunda vez que la llames responde 409: el prestamo ya esta DEVUELTO.",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fechaDevolucionReal\": \"2026-09-16T10:00:00\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Movimientos",
+			"item": [
+				{
+					"name": "Listar movimientos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{inventarioUrl}}/api/v1/activos/movimientos-inventario?nitUniv={{nitUniv}}",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"movimientos-inventario"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								}
+							]
+						},
+						"description": ""
+					}
+				},
+				{
+					"name": "Crear movimiento",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{inventarioUrl}}/api/v1/activos/movimientos-inventario",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"movimientos-inventario"
+							]
+						},
+						"description": "",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nitUniv\": \"{{nitUniv}}\",\n  \"placaInventario\": \"{{placa}}\",\n  \"tipoMovimiento\": \"PRESTAMO\",\n  \"fechaMovimiento\": \"2026-09-16T08:30:00\",\n  \"numDocumento\": \"79123456\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Notificaciones",
+			"item": [
+				{
+					"name": "Mi bandeja",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{notificacionesUrl}}/api/v1/notificaciones",
+							"host": [
+								"{{notificacionesUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notificaciones"
+							]
+						},
+						"description": "El tenant y el destinatario salen del JWT, no son parametros."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"  const body = pm.response.json();",
+									"  if (body.items && body.items.length > 0) pm.collectionVariables.set(\"idNotificacion\", body.items[0].idNotificacion);",
+									"}"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Solo no leidas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{notificacionesUrl}}/api/v1/notificaciones?soloNoLeidas=true",
+							"host": [
+								"{{notificacionesUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notificaciones"
+							],
+							"query": [
+								{
+									"key": "soloNoLeidas",
+									"value": "true"
+								}
+							]
+						},
+						"description": ""
+					}
+				},
+				{
+					"name": "Marcar una como leida",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{notificacionesUrl}}/api/v1/notificaciones/{{idNotificacion}}/leida",
+							"host": [
+								"{{notificacionesUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notificaciones",
+								"{{idNotificacion}}",
+								"leida"
+							]
+						},
+						"description": ""
+					}
+				},
+				{
+					"name": "Marcar todas como leidas",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{notificacionesUrl}}/api/v1/notificaciones/leidas",
+							"host": [
+								"{{notificacionesUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notificaciones",
+								"leidas"
+							]
+						},
+						"description": ""
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Flujo Kafka (Entrega 2P2)",
+			"description": "Ejecutar en orden. Cada request de verificación tiene tests que comprueban que el evento fue consumido.",
+			"item": [
+				{
+					"name": "1. Crear activo para el flujo Kafka",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{activosUrl}}/api/v1/activos/activos-fijos",
+							"host": [
+								"{{activosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"activos-fijos"
+							]
+						},
+						"description": "Genera una placa nueva en cada ejecución y emite ACTIVO_CREADO en eter.activos.eventos.v1.",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nitUniv\": \"{{nitUniv}}\",\n  \"placaInventario\": \"{{placaKafka}}\",\n  \"descripcion\": \"Portátil Dell Latitude 5450 (flujo Kafka)\",\n  \"codUnspsc\": \"43211503\",\n  \"codSede\": \"SED-01\",\n  \"valorContable\": 3900000,\n  \"estado\": \"ACTIVO\"\n}"
+						}
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.collectionVariables.set('placaKafka', 'AF-PM-' + String(Date.now()).slice(-8));"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('201 Created', () => pm.response.to.have.status(201));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "2. Kardex del activo (ALTA)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{inventarioUrl}}/api/v1/activos/movimientos-inventario?nitUniv={{nitUniv}}&placaInventario={{placaKafka}}",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"movimientos-inventario"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								},
+								{
+									"key": "placaInventario",
+									"value": "{{placaKafka}}"
+								}
+							]
+						},
+						"description": "Lo registró el consumidor de inventario al recibir el evento. Si aún no aparece ALTA, espere 5 s y repita."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const tipos = pm.response.json().map(m => m.tipoMovimiento);",
+									"pm.test('El kardex tiene ALTA (registrado por Kafka)', () => pm.expect(tipos).to.include('ALTA'));",
+									"pm.test('Sin movimientos duplicados', () => pm.expect(new Set(tipos).size).to.eql(tipos.length));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "3. Crear préstamo vencido del activo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{prestamosUrl}}/api/v1/activos/prestamos",
+							"host": [
+								"{{prestamosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"prestamos"
+							]
+						},
+						"description": "Emite PRESTAMO_CREADO. Como la fecha pactada ya pasó, el vigía emitirá PRESTAMO_VENCIDO en ~30 s.",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nitUniv\": \"{{nitUniv}}\",\n  \"placaInventario\": \"{{placaKafka}}\",\n  \"numDocumento\": \"79123456\",\n  \"fechaSalida\": \"{{fechaSalidaKafka}}\",\n  \"fechaDevolucionPactada\": \"{{fechaPactadaKafka}}\"\n}"
+						}
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const f = d => { const p = n => String(n).padStart(2, '0');",
+									"  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };",
+									"pm.collectionVariables.set('fechaSalidaKafka', f(new Date(Date.now() - 3*864e5)));",
+									"pm.collectionVariables.set('fechaPactadaKafka', f(new Date(Date.now() - 1*864e5)));"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('201 Created', () => pm.response.to.have.status(201));",
+									"if (pm.response.code === 201) pm.collectionVariables.set('idPrestamo', pm.response.json().idPrestamo);"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "4. Kardex del activo (PRESTAMO)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{inventarioUrl}}/api/v1/activos/movimientos-inventario?nitUniv={{nitUniv}}&placaInventario={{placaKafka}}",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"movimientos-inventario"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								},
+								{
+									"key": "placaInventario",
+									"value": "{{placaKafka}}"
+								}
+							]
+						},
+						"description": "Lo registró el consumidor de inventario al recibir el evento. Si aún no aparece PRESTAMO, espere 5 s y repita."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const tipos = pm.response.json().map(m => m.tipoMovimiento);",
+									"pm.test('El kardex tiene PRESTAMO (registrado por Kafka)', () => pm.expect(tipos).to.include('PRESTAMO'));",
+									"pm.test('Sin movimientos duplicados', () => pm.expect(new Set(tipos).size).to.eql(tipos.length));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "5. Mi bandeja (PRESTAMO_CREADO)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{notificacionesUrl}}/api/v1/notificaciones?size=50",
+							"host": [
+								"{{notificacionesUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notificaciones"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "50"
+								}
+							]
+						},
+						"description": "Lo registró el consumidor de notificaciones al recibir el evento."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const items = pm.response.json().items.filter(n => n.placaInventario === pm.collectionVariables.get('placaKafka'));",
+									"pm.test('Llegó la notificación PRESTAMO_CREADO', () => pm.expect(items.map(n => n.tipo)).to.include('PRESTAMO_CREADO'));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "6. Mi bandeja (PRESTAMO_VENCIDO)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{notificacionesUrl}}/api/v1/notificaciones?size=50",
+							"host": [
+								"{{notificacionesUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notificaciones"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "50"
+								}
+							]
+						},
+						"description": "Lo registró el consumidor de notificaciones al recibir el evento."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const items = pm.response.json().items.filter(n => n.placaInventario === pm.collectionVariables.get('placaKafka'));",
+									"pm.test('Llegó la notificación PRESTAMO_VENCIDO', () => pm.expect(items.map(n => n.tipo)).to.include('PRESTAMO_VENCIDO'));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "7. Registrar devolución del préstamo",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{prestamosUrl}}/api/v1/activos/prestamos/{{idPrestamo}}/devolucion",
+							"host": [
+								"{{prestamosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"prestamos",
+								"{{idPrestamo}}",
+								"devolucion"
+							]
+						},
+						"description": "Emite PRESTAMO_DEVUELTO. Si se repite responde 409 (ya devuelto) y no emite otro evento.",
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fechaDevolucionReal\": \"{{fechaDevolucionKafka}}\"\n}"
+						}
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const f = d => { const p = n => String(n).padStart(2, '0');",
+									"  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };",
+									"pm.collectionVariables.set('fechaDevolucionKafka', f(new Date()));"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('200 OK (o 409 si ya estaba devuelto)', () => pm.expect(pm.response.code).to.be.oneOf([200, 409]));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "8. Kardex del activo (DEVOLUCION)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{inventarioUrl}}/api/v1/activos/movimientos-inventario?nitUniv={{nitUniv}}&placaInventario={{placaKafka}}",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"movimientos-inventario"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								},
+								{
+									"key": "placaInventario",
+									"value": "{{placaKafka}}"
+								}
+							]
+						},
+						"description": "Lo registró el consumidor de inventario al recibir el evento. Si aún no aparece DEVOLUCION, espere 5 s y repita."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const tipos = pm.response.json().map(m => m.tipoMovimiento);",
+									"pm.test('El kardex tiene DEVOLUCION (registrado por Kafka)', () => pm.expect(tipos).to.include('DEVOLUCION'));",
+									"pm.test('Sin movimientos duplicados', () => pm.expect(new Set(tipos).size).to.eql(tipos.length));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "9. Mi bandeja (PRESTAMO_DEVUELTO)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{notificacionesUrl}}/api/v1/notificaciones?size=50",
+							"host": [
+								"{{notificacionesUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notificaciones"
+							],
+							"query": [
+								{
+									"key": "size",
+									"value": "50"
+								}
+							]
+						},
+						"description": "Lo registró el consumidor de notificaciones al recibir el evento."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const items = pm.response.json().items.filter(n => n.placaInventario === pm.collectionVariables.get('placaKafka'));",
+									"pm.test('Llegó la notificación PRESTAMO_DEVUELTO', () => pm.expect(items.map(n => n.tipo)).to.include('PRESTAMO_DEVUELTO'));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "10. Dar de baja el activo",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{activosUrl}}/api/v1/activos/activos-fijos/{{nitUniv}}/{{placaKafka}}",
+							"host": [
+								"{{activosUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"activos-fijos",
+								"{{nitUniv}}",
+								"{{placaKafka}}"
+							]
+						},
+						"description": "Emite ACTIVO_DADO_DE_BAJA. Repetir la baja no genera otro evento."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('204 No Content', () => pm.response.to.have.status(204));"
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "11. Kardex del activo (BAJA)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{inventarioUrl}}/api/v1/activos/movimientos-inventario?nitUniv={{nitUniv}}&placaInventario={{placaKafka}}",
+							"host": [
+								"{{inventarioUrl}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"activos",
+								"movimientos-inventario"
+							],
+							"query": [
+								{
+									"key": "nitUniv",
+									"value": "{{nitUniv}}"
+								},
+								{
+									"key": "placaInventario",
+									"value": "{{placaKafka}}"
+								}
+							]
+						},
+						"description": "Lo registró el consumidor de inventario al recibir el evento. Si aún no aparece BAJA, espere 5 s y repita."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"const tipos = pm.response.json().map(m => m.tipoMovimiento);",
+									"pm.test('El kardex tiene BAJA (registrado por Kafka)', () => pm.expect(tipos).to.include('BAJA'));",
+									"pm.test('Sin movimientos duplicados', () => pm.expect(new Set(tipos).size).to.eql(tipos.length));"
+								]
+							}
+						}
+					]
+				}
+			]
+		}
+	]
+}

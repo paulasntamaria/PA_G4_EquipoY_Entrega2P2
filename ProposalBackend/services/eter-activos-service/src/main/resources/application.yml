@@ -1,0 +1,47 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: eter-activos-service
+  datasource:
+    url: "${ETER_ACTIVOS_DB_URL:jdbc:postgresql://localhost:5433/eterdb?currentSchema=activos}"
+    username: "${ETER_DB_USER:postgres}"
+    password: "${ETER_DB_PASSWORD:eter_dev_2026}"
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: activos
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    schemas: activos
+    default-schema: activos
+    create-schemas: true
+  kafka:
+    bootstrap-servers: "${ETER_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+
+eter:
+  jwt:
+    secret: "${ETER_JWT_SECRET:eter-jwt-secret-development-only-CHANGE-IN-PRODUCTION-9f4a8c7e}"
+  security:
+    # Roles que pueden crear, modificar o eliminar (POST/PUT/PATCH/DELETE).
+    # Las consultas (GET) solo requieren estar autenticado.
+    roles-escritura: "${ETER_ROLES_ESCRITURA:ADMIN}"
+  kafka:
+    topic-activos: "${ETER_KAFKA_TOPIC_ACTIVOS:eter.activos.eventos.v1}"
+  outbox:
+    publicador-delay-ms: "${ETER_OUTBOX_DELAY_MS:5000}"
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

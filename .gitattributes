@@ -1,0 +1,17 @@
+* text=auto
+
+# Scripts de Unix siempre con LF (si no, fallan en Linux/Docker)
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Scripts de Windows con CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binarios
+*.jar binary
+*.docx binary
+*.pdf binary
+*.png binary
+*.jpg binary
+*.zip binary

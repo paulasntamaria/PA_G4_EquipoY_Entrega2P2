@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notificaciones · ETER Patrimonio</title>
+  <script src="assets/js/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="assets/css/eter.css">
+  <link rel="stylesheet" href="assets/css/paginas/notificaciones.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="riel" id="riel"></aside>
+    <main class="main" id="main">
+      <header class="cabecera">
+        <div>
+          <p class="folio"><a href="index.html">Patrimonio</a> / Notificaciones</p>
+          <div class="titulo-fila">
+            <h1 class="titulo">Notificaciones</h1>
+            <span class="en-vivo" id="en-vivo" data-estado="conectando" role="status"
+                  title="El gateway revisa tu bandeja en notificaciones-service cada 5 s y empuja por WebSocket solo las nuevas.">
+              <span class="en-vivo-punto" aria-hidden="true"></span>
+              <span class="en-vivo-texto" id="en-vivo-texto">Conectando…</span>
+            </span>
+          </div>
+          <p class="bajada">Bandeja de <span class="mono" id="destinatario">—</span>, el destinatario del token con que ingresaste: avisos de los préstamos a tu nombre.</p>
+        </div>
+        <div class="cabecera-acciones">
+          <button type="button" class="boton" id="btn-todas"><i data-icono="check"></i><span>Marcar todas como leídas</span></button>
+        </div>
+      </header>
+
+      <div class="barra-bandeja">
+        <div class="segmentos" role="group" aria-label="Qué notificaciones mostrar" id="segmentos">
+          <button type="button" data-filtro="todas" aria-pressed="true">Todas<span class="cuenta" id="cuenta-todas"></span></button>
+          <button type="button" data-filtro="sin-leer" aria-pressed="false">Sin leer<span class="cuenta" id="cuenta-sin-leer"></span></button>
+        </div>
+        <p class="vivo-nota" id="vivo-nota">El gateway revisa la bandeja cada 5 s y empuja aquí solo las nuevas.</p>
+      </div>
+
+      <section class="bandeja-zona" aria-labelledby="bandeja-titulo">
+        <h2 class="sr" id="bandeja-titulo">Notificaciones recibidas</h2>
+        <div id="nuevas-arriba" hidden></div>
+        <div id="aviso-bandeja"></div>
+        <ol class="bandeja" id="bandeja" aria-busy="true"></ol>
+        <nav class="paginacion" id="paginacion" aria-label="Páginas de la bandeja" hidden>
+          <p class="paginacion-rango" id="rango" aria-live="polite">—</p>
+          <div class="paginacion-botones">
+            <button type="button" class="boton boton--sm" id="pag-anterior"><i data-icono="volver"></i><span>Anterior</span></button>
+            <button type="button" class="boton boton--sm" id="pag-siguiente"><span>Siguiente</span><i data-icono="flecha"></i></button>
+          </div>
+        </nav>
+      </section>
+
+      <p class="nota-origen" id="nota-origen">
+        <strong>De dónde salen.</strong>
+        Préstamos publica <span class="mono">PRESTAMO_CREADO</span> y <span class="mono">PRESTAMO_DEVUELTO</span> al registrar el préstamo o la devolución; su vigía publica <span class="mono">PRESTAMO_VENCIDO</span> cuando pasa la fecha pactada. Los tres viajan por <span class="mono">eter.prestamos.eventos.v1</span>; notificaciones-service los consume y deja un aviso para <span class="mono">{documento}@eter.edu.co</span>. Un mismo evento no genera dos avisos (Redis y la restricción única por evento y destinatario).
+      </p>
+
+      <p class="sr" id="anuncio" aria-live="polite"></p>
+    </main>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/paginas/notificaciones.js"></script>
+</body>
+</html>

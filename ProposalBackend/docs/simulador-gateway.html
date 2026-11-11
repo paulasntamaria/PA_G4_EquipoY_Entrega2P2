@@ -1,0 +1,1168 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Simulador del Gateway ETER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: cabecera corta; controles a la izquierda y lienzo del diagrama a la derecha; debajo, la traza paso a paso y lo que recibe el frontend */
+:root {
+  --bg: #EEF1F4; --surface: #FFFFFF; --surface-2: #F5F7F9; --code-bg: #F2F4F7;
+  --ink: #18222E; --muted: #5A6777; --line: #D5DCE3; --line-strong: #97A3B1; --grid: #D3DAE2;
+  --c-gw: #4146C4; --c-act: #0A7893; --c-pre: #A85C05; --c-inv: #2B7A3B; --c-not: #A72D66; --c-kafka: #56677A;
+  --err: #C42B2B; --on-color: #FFFFFF;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F151C; --surface: #161E27; --surface-2: #1B242F; --code-bg: #121921;
+    --ink: #E3E9F0; --muted: #97A4B3; --line: #2A3542; --line-strong: #4F5D6E; --grid: #222C37;
+    --c-gw: #949AFF; --c-act: #4EC3E0; --c-pre: #F2A54E; --c-inv: #71CE83; --c-not: #F483B6; --c-kafka: #A3B1C1;
+    --err: #FF6F6F; --on-color: #0F151C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F151C; --surface: #161E27; --surface-2: #1B242F; --code-bg: #121921;
+  --ink: #E3E9F0; --muted: #97A4B3; --line: #2A3542; --line-strong: #4F5D6E; --grid: #222C37;
+  --c-gw: #949AFF; --c-act: #4EC3E0; --c-pre: #F2A54E; --c-inv: #71CE83; --c-not: #F483B6; --c-kafka: #A3B1C1;
+  --err: #FF6F6F; --on-color: #0F151C;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 14.5px/1.55 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 40px;
+}
+.wrap { max-width: 1340px; margin: 0 auto; }
+code, pre { font-family: var(--f-mono); }
+
+/* Cabecera */
+.top { padding-block: 28px 20px; display: grid; gap: 6px; }
+.eyebrow { margin: 0; font: 500 12px/1.4 var(--f-mono); color: var(--muted); }
+h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter-spacing: -0.015em; text-wrap: balance; }
+.lede { margin: 4px 0 0; max-width: 72ch; color: var(--muted); }
+
+/* Zona principal */
+.sim { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 1020px) { .sim { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.lbl { margin: 0 0 8px; font: 600 11px/1.2 var(--f-body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+.controls { padding: 16px; display: grid; gap: 18px; }
+.scs { display: grid; gap: 3px; }
+.sc {
+  all: unset; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 8px; padding: 7px 10px; border-radius: 8px; border: 1px solid transparent; cursor: pointer;
+}
+.sc:hover { background: var(--surface-2); }
+.sc[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--c-gw) 9%, var(--surface));
+  border-color: color-mix(in srgb, var(--c-gw) 40%, transparent);
+}
+.sc:focus-visible { outline: 2px solid var(--c-gw); outline-offset: 2px; }
+.sc-n { font-weight: 600; }
+.sc-k { grid-row: 1; grid-column: 2; align-self: center; font: 500 10px/1 var(--f-mono); letter-spacing: 0.04em; color: var(--muted); }
+.sc-d { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+
+.op {
+  margin: 0; padding: 10px 12px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  font: 12px/1.55 var(--f-mono); white-space: pre; overflow-x: auto; color: var(--ink);
+}
+.op .k { color: var(--c-gw); font-weight: 500; }
+.op .s { color: var(--c-pre); }
+
+.seg {
+  display: flex; flex-wrap: wrap; gap: 3px; padding: 3px; width: fit-content; max-width: 100%;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px;
+}
+.seg button { all: unset; display: inline-block; padding: 5px 10px; border-radius: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgb(0 0 0 / 0.14); }
+.seg button:focus-visible { outline: 2px solid var(--c-gw); }
+.hint { margin: 7px 0 0; font-size: 12.5px; color: var(--muted); }
+
+.downs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+.chk { display: flex; align-items: center; gap: 7px; font-size: 13.5px; cursor: pointer; }
+.chk input { margin: 0; width: 15px; height: 15px; accent-color: var(--err); }
+.chk input:focus-visible { outline: 2px solid var(--c-gw); outline-offset: 2px; }
+.dot { flex: none; width: 9px; height: 9px; border-radius: 2px; background: var(--nc); }
+
+.runrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.btn {
+  font: 600 14px/1 var(--f-body); padding: 10px 14px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+}
+.btn.primary { min-width: 140px; background: var(--c-gw); border-color: var(--c-gw); color: var(--on-color); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.btn:focus-visible { outline: 2px solid var(--c-gw); outline-offset: 2px; }
+
+/* Diagrama */
+.stage { overflow: hidden; }
+.fig { margin: 0; }
+.canvas {
+  overflow-x: auto; background-color: var(--surface);
+  background-image: radial-gradient(circle, var(--grid) 1px, transparent 1.3px); background-size: 18px 18px;
+}
+#diagram { display: block; width: 100%; min-width: 760px; height: auto; color: var(--line-strong); }
+#diagram text { font-family: var(--f-body); }
+.narr {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: baseline;
+  min-height: 66px; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--surface-2);
+}
+.narr-k { font: 500 12px/1.4 var(--f-mono); color: var(--muted); white-space: nowrap; }
+.narr p { margin: 0; font-size: 15px; max-width: 95ch; }
+@media (max-width: 560px) { .narr { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.fig figcaption { display: grid; gap: 8px; padding: 12px 16px 14px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.legend li { display: flex; align-items: center; gap: 7px; }
+.lg { font: 500 10px/1 var(--f-mono); padding: 3px 7px; border-radius: 999px; border: 1.5px solid var(--c-act); }
+.lg.req { background: var(--c-act); color: var(--on-color); }
+.lg.res { color: var(--c-act); }
+.lg.err { background: var(--err); border-color: var(--err); color: var(--on-color); }
+.lg.evt { border-style: dashed; border-color: var(--c-pre); color: var(--c-pre); }
+.lg.ws { background: var(--c-gw); border-color: var(--c-gw); color: var(--on-color); }
+.lg-line { width: 26px; height: 8px; }
+.lg-line line { stroke: var(--line-strong); stroke-width: 1.6; }
+
+/* SVG */
+.box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.2; transition: fill 0.2s, stroke 0.2s, stroke-width 0.2s; }
+.box.dashed { stroke-dasharray: 4 3; }
+.grpbox { fill: color-mix(in srgb, var(--c-gw) 4%, transparent); stroke: color-mix(in srgb, var(--c-gw) 45%, var(--line)); stroke-width: 1.2; stroke-dasharray: 3 4; }
+.node.busy .box { stroke: var(--nc); stroke-width: 2.4; fill: color-mix(in srgb, var(--nc) 13%, var(--surface)); }
+.node.hit .box { stroke: var(--err); stroke-width: 2.4; fill: color-mix(in srgb, var(--err) 13%, var(--surface)); }
+.node.skip { opacity: 0.4; transition: opacity 0.3s; }
+.node.down .box { stroke-dasharray: 5 4; fill: var(--surface-2); }
+.node.down .body { opacity: 0.45; }
+.node .badge { display: none; }
+.node.down .badge { display: inline; }
+.node.down .port { display: none; }
+.svc { cursor: pointer; }
+.nt { font-size: 13.5px; font-weight: 600; fill: var(--ink); }
+.ns { font-size: 11px; fill: var(--muted); }
+.nm { font-family: var(--f-mono); font-size: 10.5px; fill: var(--muted); }
+#diagram .nm, #diagram .port, #diagram .lane-t, #diagram .pkt text { font-family: var(--f-mono); }
+.port { font-size: 11px; fill: var(--muted); }
+.mark { fill: var(--nc); }
+.elab { font-size: 10.5px; font-weight: 500; fill: var(--muted); }
+.glab { font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; fill: var(--muted); }
+.badge rect { fill: var(--err); }
+.badge text { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; fill: var(--on-color); }
+.edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; transition: stroke 0.2s, stroke-width 0.2s; }
+.edge.async { stroke-dasharray: 5 4; }
+.edge.hot { stroke: var(--hc); stroke-width: 2.6; }
+.route { fill: none; stroke: none; }
+.lane { fill: var(--surface-2); stroke: var(--line-strong); stroke-width: 1.2; transition: fill 0.2s, stroke 0.2s; }
+.lane.hot { stroke: var(--hc); fill: color-mix(in srgb, var(--hc) 13%, var(--surface)); }
+.lane-t { font-size: 11px; fill: var(--ink); }
+.lane-s { fill: var(--muted); }
+.chip rect { fill: var(--surface-2); stroke: var(--line); transition: fill 0.2s, stroke 0.2s; }
+.chip text { font-size: 10.5px; fill: var(--muted); }
+.chip path { fill: none; stroke: var(--muted); stroke-width: 1; }
+.chip.busy rect { fill: color-mix(in srgb, var(--nc) 20%, var(--surface)); stroke: var(--nc); }
+.chip.busy text { fill: var(--ink); }
+.chip.flash rect { fill: color-mix(in srgb, var(--c-gw) 22%, var(--surface)); stroke: var(--c-gw); }
+.chip.flash text { fill: var(--ink); }
+.pkt rect { stroke-width: 1.6; }
+.pkt text { font-size: 10px; font-weight: 500; text-anchor: middle; dominant-baseline: central; }
+.pkt.req rect { fill: var(--pc); stroke: var(--pc); }
+.pkt.req text { fill: var(--on-color); }
+.pkt.res rect { fill: var(--surface); stroke: var(--pc); }
+.pkt.res text { fill: var(--pc); }
+.pkt.err rect { fill: var(--err); stroke: var(--err); }
+.pkt.err text { fill: var(--on-color); }
+.pkt.evt rect { fill: var(--surface); stroke: var(--pc); stroke-dasharray: 3 2; }
+.pkt.evt text { fill: var(--pc); }
+.pkt.ws rect { fill: var(--c-gw); stroke: var(--c-gw); }
+.pkt.ws text { fill: var(--on-color); }
+
+/* Traza y respuesta */
+.out { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; margin-top: 18px; align-items: start; }
+@media (max-width: 900px) { .out { grid-template-columns: minmax(0, 1fr); } }
+.out .panel { padding: 14px 14px 16px; min-width: 0; }
+.phead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; padding-inline: 2px; }
+.phead .lbl { margin: 0; }
+.phead small { font-size: 12px; color: var(--muted); }
+.trace { position: relative; list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 640px; overflow-y: auto; }
+.st { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 4px 10px; padding: 9px 8px; border-radius: 8px; transition: background 0.2s; }
+.st-n {
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  font: 500 11px/1 var(--f-mono); font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line-strong); color: var(--muted);
+}
+.st-b { min-width: 0; }
+.st-t { margin: 0; font-size: 13.5px; }
+.st-who { display: inline-flex; align-items: center; gap: 6px; margin-right: 7px; font: 500 11.5px/1.4 var(--f-mono); color: var(--wc); }
+.st-who i { width: 8px; height: 8px; border-radius: 2px; background: var(--wc); }
+.st-c {
+  display: block; margin-top: 5px; padding: 5px 8px; border-radius: 6px; background: var(--code-bg);
+  font: 11.5px/1.5 var(--f-mono); color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.st-m { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.ref { font: 11px/1.3 var(--f-mono); color: var(--muted); white-space: nowrap; }
+.pill { font: 600 11px/1 var(--f-mono); padding: 4px 7px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink); white-space: nowrap; }
+.pill.bad { background: var(--err); border-color: var(--err); color: var(--on-color); }
+.pill.warn { border-color: var(--err); color: var(--err); }
+.pill.evt { border-style: dashed; }
+.st.pending .st-t { color: var(--muted); }
+.st.active { background: color-mix(in srgb, var(--c-gw) 9%, var(--surface)); }
+.st.active .st-n { background: var(--c-gw); border-color: var(--c-gw); color: var(--on-color); }
+.st.done .st-n { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.sep { display: flex; align-items: center; gap: 10px; padding: 14px 8px 6px; font: 600 11px/1 var(--f-body); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.sep::after { content: ""; flex: 1; border-top: 1px dashed var(--line-strong); }
+.sep.on { color: var(--ink); }
+@media (max-width: 560px) {
+  .st { grid-template-columns: 24px minmax(0, 1fr); }
+  .st-m { grid-column: 2; flex-direction: row; align-items: center; }
+}
+.resp { display: grid; gap: 12px; max-height: 640px; overflow-y: auto; }
+.msg-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12.5px; color: var(--muted); }
+.json {
+  margin: 0; padding: 10px 12px; background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px;
+  font: 12px/1.55 var(--f-mono); white-space: pre; overflow-x: auto; color: var(--ink);
+}
+.json .k { color: var(--muted); }
+.json .n, .json .b { color: var(--c-gw); font-weight: 500; }
+.empty { margin: 0; padding: 18px 14px; border: 1px dashed var(--line-strong); border-radius: 8px; color: var(--muted); font-size: 13.5px; }
+.foot { margin-top: 18px; max-width: 95ch; font-size: 12.5px; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">ETER · Entrega 2P2 · eter-graphql-gateway :4000</p>
+    <h1>Simulador del Gateway ETER</h1>
+    <p class="lede">Elige una operación GraphQL y mira qué componentes toca, en qué orden y qué responde cada uno. Cada paso sigue el código del gateway y cita el archivo y la línea. Las consultas no pasan por Kafka: Kafka entra solo cuando algo se escribe, después de responder. Pruébalo con «Crear un préstamo», «Dar de baja un activo» o «Suscripción a avisos» y mira los tópicos al fondo del diagrama. Los datos son de ejemplo y no se hace ninguna llamada real.</p>
+  </header>
+
+  <main>
+    <section class="sim">
+      <aside class="panel controls" aria-label="Controles de la simulación">
+        <div>
+          <h2 class="lbl">Operación</h2>
+          <div class="scs" id="scs"></div>
+        </div>
+        <pre class="op" id="op" aria-label="Operación GraphQL que envía el frontend"></pre>
+        <div>
+          <h2 class="lbl">Credencial del frontend</h2>
+          <div class="seg" id="token">
+            <button type="button" data-token="admin" aria-pressed="true">JWT con ADMIN</button>
+            <button type="button" data-token="lector" aria-pressed="false">JWT sin ADMIN</button>
+            <button type="button" data-token="none" aria-pressed="false">Sin token</button>
+          </div>
+          <p class="hint">Las lecturas (GET) solo piden un token válido. Escribir exige el rol ADMIN.</p>
+        </div>
+        <div>
+          <h2 class="lbl">Servicios apagados</h2>
+          <div class="downs">
+            <label class="chk"><input type="checkbox" id="down-act" data-svc="act"><span class="dot" style="--nc: var(--c-act)"></span>activos</label>
+            <label class="chk"><input type="checkbox" id="down-pre" data-svc="pre"><span class="dot" style="--nc: var(--c-pre)"></span>prestamos</label>
+            <label class="chk"><input type="checkbox" id="down-inv" data-svc="inv"><span class="dot" style="--nc: var(--c-inv)"></span>inventario</label>
+            <label class="chk"><input type="checkbox" id="down-not" data-svc="not"><span class="dot" style="--nc: var(--c-not)"></span>notificaciones</label>
+          </div>
+          <p class="hint">También puedes hacer clic en la tarjeta del servicio en el diagrama.</p>
+        </div>
+        <div class="runrow">
+          <button type="button" class="btn primary" id="run">Ejecutar</button>
+          <button type="button" class="btn" id="reset">Reiniciar</button>
+          <label class="chk"><input type="checkbox" id="paso"> Paso a paso</label>
+          <div class="seg" id="speed" aria-label="Velocidad">
+            <button type="button" data-speed="0.5" aria-pressed="false">0.5×</button>
+            <button type="button" data-speed="1" aria-pressed="true">1×</button>
+            <button type="button" data-speed="2" aria-pressed="false">2×</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="panel stage">
+        <figure class="fig">
+          <div class="canvas">
+            <svg id="diagram" viewBox="0 0 1120 600" role="img" aria-label="Diagrama de componentes: el frontend llama al gateway GraphQL (server.js, auth.js, resolvers.js, http.js), que llama por REST a los microservicios de préstamos, activos, inventario y notificaciones. Préstamos e inventario consultan a activos por REST. Préstamos y activos publican eventos en Kafka que consumen inventario y notificaciones.">
+              <defs>
+                <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
+                  <path d="M0 1 L9 5 L0 9 z" fill="currentColor"/>
+                </marker>
+              </defs>
+
+              <!-- Contenedor del gateway -->
+              <rect class="grpbox" x="20" y="124" width="1080" height="156" rx="14"/>
+              <text class="glab" x="1084" y="146" text-anchor="end">ETER-GRAPHQL-GATEWAY · :4000</text>
+
+              <!-- Aristas: REST síncrono -->
+              <path class="edge" id="e-fe-srv" d="M155 92 L155 168" marker-end="url(#arw)"/>
+              <path class="edge" id="e-srv-auth" d="M270 206 L310 206" marker-end="url(#arw)"/>
+              <path class="edge" id="e-auth-res" d="M540 206 L580 206" marker-end="url(#arw)"/>
+              <path class="edge" id="e-res-http" d="M810 206 L850 206" marker-end="url(#arw)"/>
+              <path class="edge" id="e-res-srv" d="M695 244 L695 258 L155 258 L155 244" marker-end="url(#arw)"/>
+              <path class="edge" id="e-http-pre" d="M965 244 L965 306 L155 306 L155 338" marker-end="url(#arw)"/>
+              <path class="edge" id="e-http-act" d="M965 244 L965 306 L425 306 L425 338" marker-end="url(#arw)"/>
+              <path class="edge" id="e-http-inv" d="M965 244 L965 306 L695 306 L695 338" marker-end="url(#arw)"/>
+              <path class="edge" id="e-http-not" d="M965 244 L965 338" marker-end="url(#arw)"/>
+              <path class="edge" id="e-pre-act" d="M270 396 L310 396" marker-end="url(#arw)"/>
+              <path class="edge" id="e-inv-act" d="M580 396 L540 396" marker-end="url(#arw)"/>
+
+              <!-- Aristas: Kafka asincrónico -->
+              <path class="edge async" id="e-pre-kp" d="M155 454 L155 554" marker-end="url(#arw)"/>
+              <path class="edge async" id="e-act-ka" d="M425 454 L425 500" marker-end="url(#arw)"/>
+              <path class="edge async" id="e-ka-inv" d="M640 500 L640 454" marker-end="url(#arw)"/>
+              <path class="edge async" id="e-kp-inv" d="M760 554 L760 454" marker-end="url(#arw)"/>
+              <path class="edge async" id="e-kp-not" d="M965 554 L965 454" marker-end="url(#arw)"/>
+
+              <!-- Rutas internas por donde viajan los paquetes (no se dibujan) -->
+              <path class="route" id="r-srv-up" d="M155 244 L155 168"/>
+              <path class="route" id="r-http" d="M850 206 L965 206 L965 244"/>
+              <path class="route" id="l-kp-inv" data-hl="n-kp" d="M155 554 L155 568 L760 568 L760 554"/>
+              <path class="route" id="l-kp-not" data-hl="n-kp" d="M155 554 L155 568 L965 568 L965 554"/>
+              <path class="route" id="l-ka-inv" data-hl="n-ka" d="M425 500 L425 514 L640 514 L640 500"/>
+
+              <!-- Etiquetas de aristas -->
+              <text class="elab" x="167" y="111">POST /graphql · WebSocket /graphql</text>
+              <text class="elab" x="425" y="273" text-anchor="middle">resultado → JSON</text>
+              <text class="elab" x="560" y="298" text-anchor="middle">REST · reenvía el mismo JWT · timeout 5 s</text>
+              <text class="elab" x="290" y="388" text-anchor="middle">REST</text>
+              <text class="elab" x="560" y="388" text-anchor="middle">REST</text>
+              <text class="elab" x="163" y="486">publica</text>
+              <text class="elab" x="433" y="482">publica</text>
+              <text class="elab" x="648" y="482">consume</text>
+              <text class="elab" x="768" y="486">consume</text>
+              <text class="elab" x="973" y="486">consume</text>
+              <text class="glab" x="175" y="519">KAFKA · EVENTOS</text>
+
+              <!-- Frontend -->
+              <g class="node" id="n-fe" style="--nc: var(--ink)">
+                <rect class="box" x="40" y="20" width="230" height="72" rx="10"/>
+                <text class="nt" x="56" y="45">Frontend</text>
+                <text class="ns" x="56" y="63">cliente web o móvil</text>
+                <text class="nm" x="56" y="80">Authorization: Bearer eyJhbGci…</text>
+              </g>
+
+              <!-- Infraestructura compartida -->
+              <g class="node" id="n-infra" style="--nc: var(--c-kafka)">
+                <rect class="box dashed" x="790" y="20" width="290" height="72" rx="10"/>
+                <text class="glab" x="806" y="41">INFRAESTRUCTURA COMPARTIDA</text>
+                <text class="ns" x="806" y="61">PostgreSQL :5433 · un esquema por servicio</text>
+                <text class="ns" x="806" y="79">Redis :6379 · idempotencia de consumidores</text>
+              </g>
+
+              <!-- Gateway por dentro -->
+              <g class="node" id="n-srv" style="--nc: var(--c-gw)">
+                <rect class="box" x="40" y="168" width="230" height="76" rx="8"/>
+                <text class="nt" x="56" y="192">server.js</text>
+                <text class="ns" x="56" y="211">GraphQL Yoga · graphql-ws</text>
+                <text class="ns" x="56" y="228">valida contra schema.graphql</text>
+              </g>
+              <g class="node" id="n-auth" style="--nc: var(--c-gw)">
+                <rect class="box" x="310" y="168" width="230" height="76" rx="8"/>
+                <text class="nt" x="326" y="192">auth.js</text>
+                <text class="ns" x="326" y="211">jwt.verify HS256</text>
+                <text class="ns" x="326" y="228">nitUniv y roles salen del token</text>
+              </g>
+              <g class="node" id="n-res" style="--nc: var(--c-gw)">
+                <rect class="box" x="580" y="168" width="230" height="76" rx="8"/>
+                <text class="nt" x="596" y="191">resolvers.js</text>
+                <text class="ns" x="596" y="208">decide a qué servicio llamar</text>
+                <g class="chips" data-x="596" data-y="216">
+                  <g class="chip" id="chip-memo"><rect/><text id="memo-t">memo · 0 aciertos</text></g>
+                </g>
+              </g>
+              <g class="node" id="n-http" style="--nc: var(--c-gw)">
+                <rect class="box" x="850" y="168" width="230" height="76" rx="8"/>
+                <text class="nt" x="866" y="192">http.js</text>
+                <text class="ns" x="866" y="211">llamar(): fetch + JWT + timeout</text>
+                <text class="ns" x="866" y="228">4xx/5xx → código GraphQL</text>
+              </g>
+
+              <!-- Microservicios -->
+              <g class="node svc" id="n-pre" data-svc="pre" style="--nc: var(--c-pre)">
+                <rect class="box" x="40" y="338" width="230" height="116" rx="10"/>
+                <g class="body">
+                  <rect class="mark" x="56" y="354" width="9" height="9" rx="2"/>
+                  <text class="nt" x="73" y="363">Préstamos</text>
+                  <text class="nm" x="56" y="386">/api/v1/activos/prestamos</text>
+                  <text class="ns" x="56" y="404">préstamos y devoluciones</text>
+                  <g class="chips" data-x="56" data-y="420">
+                    <g class="chip" id="chip-pre-bd"><rect/><path d="M0 2.2 A5 2.2 0 0 1 10 2.2 A5 2.2 0 0 1 0 2.2 Z M0 2.2 V9.8 A5 2.2 0 0 0 10 9.8 V2.2"/><text>BD prestamos</text></g>
+                    <g class="chip" id="chip-pre-outbox"><rect/><text>outbox · 5 s</text></g>
+                  </g>
+                </g>
+                <text class="port" x="254" y="363" text-anchor="end">:8088</text>
+                <g class="badge"><rect x="196" y="351" width="58" height="17" rx="4"/><text x="225" y="363" text-anchor="middle">CAÍDO</text></g>
+              </g>
+              <g class="node svc" id="n-act" data-svc="act" style="--nc: var(--c-act)">
+                <rect class="box" x="310" y="338" width="230" height="116" rx="10"/>
+                <g class="body">
+                  <rect class="mark" x="326" y="354" width="9" height="9" rx="2"/>
+                  <text class="nt" x="343" y="363">Activos</text>
+                  <text class="nm" x="326" y="386">/api/v1/activos/activos-fijos</text>
+                  <text class="ns" x="326" y="404">catálogo de activos fijos</text>
+                  <g class="chips" data-x="326" data-y="420">
+                    <g class="chip" id="chip-act-bd"><rect/><path d="M0 2.2 A5 2.2 0 0 1 10 2.2 A5 2.2 0 0 1 0 2.2 Z M0 2.2 V9.8 A5 2.2 0 0 0 10 9.8 V2.2"/><text>BD activos</text></g>
+                    <g class="chip" id="chip-act-outbox"><rect/><text>outbox · 5 s</text></g>
+                  </g>
+                </g>
+                <text class="port" x="524" y="363" text-anchor="end">:8087</text>
+                <g class="badge"><rect x="466" y="351" width="58" height="17" rx="4"/><text x="495" y="363" text-anchor="middle">CAÍDO</text></g>
+              </g>
+              <g class="node svc" id="n-inv" data-svc="inv" style="--nc: var(--c-inv)">
+                <rect class="box" x="580" y="338" width="230" height="116" rx="10"/>
+                <g class="body">
+                  <rect class="mark" x="596" y="354" width="9" height="9" rx="2"/>
+                  <text class="nt" x="613" y="363">Inventario</text>
+                  <text class="nm" x="596" y="386">/api/v1/activos/asignaciones</text>
+                  <text class="nm" x="596" y="404">…/movimientos-inventario</text>
+                  <g class="chips" data-x="596" data-y="420">
+                    <g class="chip" id="chip-inv-bd"><rect/><path d="M0 2.2 A5 2.2 0 0 1 10 2.2 A5 2.2 0 0 1 0 2.2 Z M0 2.2 V9.8 A5 2.2 0 0 0 10 9.8 V2.2"/><text>BD inventario</text></g>
+                    <g class="chip" id="chip-inv-redis"><rect/><text>Redis</text></g>
+                  </g>
+                </g>
+                <text class="port" x="794" y="363" text-anchor="end">:8089</text>
+                <g class="badge"><rect x="736" y="351" width="58" height="17" rx="4"/><text x="765" y="363" text-anchor="middle">CAÍDO</text></g>
+              </g>
+              <g class="node svc" id="n-not" data-svc="not" style="--nc: var(--c-not)">
+                <rect class="box" x="850" y="338" width="230" height="116" rx="10"/>
+                <g class="body">
+                  <rect class="mark" x="866" y="354" width="9" height="9" rx="2"/>
+                  <text class="nt" x="883" y="363">Notificaciones</text>
+                  <text class="nm" x="866" y="386">/api/v1/notificaciones</text>
+                  <text class="ns" x="866" y="404">bandeja del usuario del JWT</text>
+                  <g class="chips" data-x="866" data-y="420">
+                    <g class="chip" id="chip-not-bd"><rect/><path d="M0 2.2 A5 2.2 0 0 1 10 2.2 A5 2.2 0 0 1 0 2.2 Z M0 2.2 V9.8 A5 2.2 0 0 0 10 9.8 V2.2"/><text>BD notificaciones</text></g>
+                    <g class="chip" id="chip-not-redis"><rect/><text>Redis</text></g>
+                  </g>
+                </g>
+                <text class="port" x="1064" y="363" text-anchor="end">:8090</text>
+                <g class="badge"><rect x="1006" y="351" width="58" height="17" rx="4"/><text x="1035" y="363" text-anchor="middle">CAÍDO</text></g>
+              </g>
+
+              <!-- Tópicos de Kafka -->
+              <rect class="lane" id="n-ka" x="310" y="500" width="390" height="28" rx="6"/>
+              <text class="lane-t" x="520" y="518" text-anchor="middle">eter.activos.eventos.v1</text>
+              <rect class="lane" id="n-kp" x="40" y="554" width="1040" height="28" rx="6"/>
+              <text class="lane-t" x="470" y="572" text-anchor="middle">eter.prestamos.eventos.v1<tspan class="lane-s"> · key nitUniv:placaInventario · 3 particiones</tspan></text>
+
+              <g id="pkts"></g>
+            </svg>
+          </div>
+          <div class="narr" aria-live="polite">
+            <span class="narr-k" id="narrK">Listo</span>
+            <p id="narrT">Pulsa Ejecutar para ver el recorrido.</p>
+          </div>
+          <figcaption>
+            <ul class="legend">
+              <li><span class="lg req">GET</span> petición</li>
+              <li><span class="lg res">200</span> respuesta</li>
+              <li><span class="lg err">✕</span> error o servicio caído</li>
+              <li><span class="lg evt">evt</span> evento Kafka</li>
+              <li><span class="lg ws">WS</span> mensaje por WebSocket</li>
+              <li><svg class="lg-line" viewBox="0 0 26 8" aria-hidden="true"><line x1="0" y1="4" x2="26" y2="4"/></svg> REST síncrono</li>
+              <li><svg class="lg-line" viewBox="0 0 26 8" aria-hidden="true"><line x1="0" y1="4" x2="26" y2="4" stroke-dasharray="5 4"/></svg> Kafka asincrónico</li>
+            </ul>
+            <span>Componentes de ETER en docker compose. La flecha apunta a quien recibe la llamada. Cada microservicio guarda sus datos en su propio esquema de eter-postgres; los mensajes que un consumidor no puede procesar van a &lt;tópico&gt;.DLT.</span>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="out">
+      <div class="panel">
+        <div class="phead"><h2 class="lbl">Traza</h2><small id="nsteps"></small></div>
+        <ol class="trace" id="trace"></ol>
+      </div>
+      <div class="panel">
+        <div class="phead"><h2 class="lbl">Lo que recibe el frontend</h2><small>datos de ejemplo</small></div>
+        <div class="resp" id="resp"></div>
+      </div>
+    </section>
+
+    <p class="foot">Construido a partir de services/eter-graphql-gateway/src (server.js, auth.js, resolvers.js, http.js, schema.graphql), docs/EVENTOS_KAFKA.md, infrastructure/docker-compose.yml y la configuración de seguridad de los microservicios. Los tiempos están comprimidos: el outbox, el vigía y el sondeo de la suscripción tardan segundos de verdad.</p>
+  </main>
+</div>
+
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const NIT = '900123456-1';
+  const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3OTEy…';
+  const LOC = [{ line: 2, column: 3 }];
+  const HOST = { act: 'activos:8087', pre: 'prestamos:8088', inv: 'inventario:8089', not: 'notificaciones:8090' };
+  const NOMBRE = { act: 'activos', pre: 'prestamos', inv: 'inventario', not: 'notificaciones' };
+  const WHO = {
+    fe: ['frontend', '--ink'], srv: ['server.js', '--c-gw'], auth: ['auth.js', '--c-gw'],
+    res: ['resolvers.js', '--c-gw'], http: ['http.js', '--c-gw'],
+    act: ['activos', '--c-act'], pre: ['prestamos', '--c-pre'], inv: ['inventario', '--c-inv'],
+    not: ['notificaciones', '--c-not'], kafka: ['Kafka', '--c-kafka'], err: ['error', '--err'],
+  };
+  const col = (w) => `var(${WHO[w][1]})`;
+
+  // ── Estado ────────────────────────────────────────────────────────────────
+  const st = { sc: 'resumen', token: 'admin', down: new Set(), speed: 1, paso: false };
+  let runId = 0, corriendo = false, esperando = null, plan = [], total = 0;
+  class Abort extends Error {}
+  const vivo = (id) => { if (id !== runId) throw new Abort(); };
+  const sleep = (ms) => {
+    const id = runId;
+    return new Promise((ok, ko) => setTimeout(() => (id === runId ? ok() : ko(new Abort())), ms / st.speed));
+  };
+
+  // ── Animación ─────────────────────────────────────────────────────────────
+  const capa = $('#pkts');
+  const calor = new Map();
+  function calentar(el, color, on) {
+    const n = (calor.get(el) ?? 0) + (on ? 1 : -1);
+    calor.set(el, n);
+    if (on) el.style.setProperty('--hc', color);
+    el.classList.toggle('hot', n > 0);
+  }
+
+  function paquete(tag, who, kind) {
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', `pkt ${kind}`);
+    g.style.setProperty('--pc', col(who));
+    const w = Math.max(28, tag.length * 6.4 + 14);
+    const r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', -w / 2); r.setAttribute('y', -9);
+    r.setAttribute('width', w); r.setAttribute('height', 18); r.setAttribute('rx', 9);
+    const t = document.createElementNS(NS, 'text');
+    t.textContent = tag;
+    g.append(r, t);
+    capa.append(g);
+    return g;
+  }
+
+  // Mueve un paquete por una secuencia de aristas: ['e-a', ['e-b', true]] (true = en sentido contrario).
+  function fly(ruta, { tag = '', who = 'srv', kind = 'req' } = {}) {
+    const id = runId;
+    const segs = ruta.map((r) => {
+      const [rid, rev] = Array.isArray(r) ? r : [r, false];
+      const el = document.getElementById(rid);
+      const hl = el.dataset.hl ? document.getElementById(el.dataset.hl) : el;
+      return { el, rev, hl, L: el.getTotalLength() };
+    });
+    const largo = segs.reduce((a, s) => a + s.L, 0);
+    const dur = reducido ? 0 : Math.min(1700, Math.max(420, largo * 1.9)) / st.speed;
+    const color = col(who);
+    segs.forEach((s) => calentar(s.hl, color, true));
+    const pkt = paquete(tag, who, kind);
+    return new Promise((ok, ko) => {
+      const t0 = performance.now();
+      const cuadro = (now) => {
+        if (id !== runId) { pkt.remove(); ko(new Abort()); return; }
+        const p = dur ? Math.min(1, (now - t0) / dur) : 1;
+        const e = p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+        let d = e * largo, i = 0;
+        while (i < segs.length - 1 && d > segs[i].L) { d -= segs[i].L; i++; }
+        const s = segs[i], x = Math.min(d, s.L);
+        const pt = s.el.getPointAtLength(s.rev ? s.L - x : x);
+        pkt.setAttribute('transform', `translate(${pt.x} ${pt.y})`);
+        if (p < 1) requestAnimationFrame(cuadro);
+        else { pkt.remove(); segs.forEach((sg) => calentar(sg.hl, color, false)); ok(); }
+      };
+      requestAnimationFrame(cuadro);
+    });
+  }
+
+  async function hold(elId, ms = 650, cls = 'busy') {
+    const rid = runId;
+    const el = document.getElementById(elId);
+    el.classList.add(cls);
+    try { await sleep(ms); } finally { if (rid === runId) el.classList.remove(cls); }
+  }
+
+  function aparcar(x, y, tag, who) {
+    const g = paquete(tag, who, 'evt');
+    g.setAttribute('transform', `translate(${x} ${y})`);
+  }
+
+  // Llamada REST del gateway: resolvers -> http.js -> servicio, y vuelta.
+  async function rest(svc, { metodo = 'GET', status = 200, caido = false, retraso = 0, proceso } = {}) {
+    if (retraso) await sleep(retraso);
+    const ida = ['e-res-http', 'r-http', `e-http-${svc}`];
+    const vuelta = [[`e-http-${svc}`, true], ['r-http', true], ['e-res-http', true]];
+    await fly(ida, { tag: metodo, who: svc });
+    if (caido) {
+      await hold(`n-${svc}`, 450, 'hit');
+      return fly(vuelta, { tag: '✕', who: 'err', kind: 'err' });
+    }
+    await (proceso ? proceso() : hold(`n-${svc}`));
+    const mala = status >= 400;
+    return fly(vuelta, { tag: String(status), who: mala ? 'err' : svc, kind: mala ? 'err' : 'res' });
+  }
+
+  const ENTREGA = { 'kp-inv': ['l-kp-inv', 'e-kp-inv', 760], 'kp-not': ['l-kp-not', 'e-kp-not', 965], 'ka-inv': ['l-ka-inv', 'e-ka-inv', 640] };
+  const LANE_Y = { kp: 568, ka: 514 };
+  async function entregar(lane, svc, caido, who) {
+    const [l, e, x] = ENTREGA[`${lane}-${svc}`];
+    if (caido) {
+      await fly([l], { tag: 'evt', who, kind: 'evt' });
+      aparcar(x, LANE_Y[lane], 'pendiente', who);
+      return;
+    }
+    await fly([l, e], { tag: 'evt', who, kind: 'evt' });
+  }
+
+  // ── Chips del diagrama (ancho según el texto) ─────────────────────────────
+  function layoutChips() {
+    $$('#diagram .chips').forEach((fila) => {
+      let x = Number(fila.dataset.x);
+      const y = Number(fila.dataset.y);
+      $$('.chip', fila).forEach((chip) => {
+        const t = chip.querySelector('text'), icono = chip.querySelector('path'), r = chip.querySelector('rect');
+        const pad = 7, iw = icono ? 15 : 0;
+        const w = t.getComputedTextLength() + pad * 2 + iw;
+        r.setAttribute('x', x); r.setAttribute('y', y); r.setAttribute('width', w); r.setAttribute('height', 20); r.setAttribute('rx', 4);
+        if (icono) icono.setAttribute('transform', `translate(${x + pad} ${y + 4})`);
+        t.setAttribute('x', x + pad + iw); t.setAttribute('y', y + 14);
+        x += w + 6;
+      });
+    });
+  }
+  function memo(n) {
+    $('#memo-t').textContent = `memo · ${n} ${n === 1 ? 'acierto' : 'aciertos'}`;
+    layoutChips();
+  }
+
+  // ── Panel de respuesta ────────────────────────────────────────────────────
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  function jsonHtml(o) {
+    return esc(JSON.stringify(o, null, 2)).replace(
+      /(&quot;(?:[^&]|&(?!quot;))*?&quot;)(\s*:)?|\b(true|false|null)\b|(-?\b\d+(?:\.\d+)?\b)/g,
+      (m, s, dos, b, n) => s ? (dos ? `<span class="k">${s}</span>${dos}` : `<span class="s">${s}</span>`)
+        : b ? `<span class="b">${b}</span>` : `<span class="n">${n}</span>`,
+    );
+  }
+  const respBox = $('#resp');
+  function limpiarResp() {
+    respBox.innerHTML = '<p class="empty">Aquí aparece lo que recibe el frontend cuando el paquete vuelve.</p>';
+  }
+  function mostrar(obj, { pill, txt }, mala = false) {
+    respBox.querySelector('.empty')?.remove();
+    const d = document.createElement('div');
+    d.innerHTML = `<div class="msg-h"><span class="pill${mala ? ' bad' : ''}">${esc(pill)}</span><span>${esc(txt)}</span></div><pre class="json">${jsonHtml(obj)}</pre>`;
+    respBox.append(d);
+    respBox.scrollTop = respBox.scrollHeight;
+  }
+
+  // ── Piezas comunes de los escenarios ──────────────────────────────────────
+  const errSvc = (svc, path, locations = LOC) => ({
+    message: `El servicio de ${svc} no responde.`, locations, path,
+    extensions: { code: 'SERVICE_UNAVAILABLE', servicio: svc, causa: 'TypeError' },
+  });
+  const wsNext = (n) => ({ id: '1', type: 'next', payload: { data: { notificacionRecibida: n } } });
+
+  function entrada(c, ws = false) {
+    const sinToken = c.token === 'none';
+    const roles = c.token === 'admin' ? '["ADMIN"]' : '[]';
+    return [
+      {
+        who: 'fe',
+        t: ws ? 'El frontend abre un WebSocket (protocolo graphql-ws) y manda el JWT en connectionParams.'
+          : 'El frontend manda la operación en un POST a /graphql, con el JWT en el header Authorization.',
+        code: ws ? `ws://localhost:4000/graphql\nconnection_init  ${sinToken ? '(sin Authorization)' : `Authorization: "Bearer ${JWT}"`}`
+          : `POST http://localhost:4000/graphql\n${sinToken ? '(sin header Authorization)' : `Authorization: Bearer ${JWT}`}`,
+        ref: ws ? 'server.js:30' : 'server.js:29',
+        act: () => fly(['e-fe-srv'], { tag: ws ? 'WS' : 'POST', who: 'fe' }),
+      },
+      {
+        who: 'srv',
+        t: ws ? 'onSubscribe arma el contexto con esos connectionParams y valida la suscripción contra schema.graphql.'
+          : 'GraphQL Yoga parsea la operación y la valida contra schema.graphql. Un campo que no existe se rechazaría aquí, sin llamar a ningún servicio.',
+        ref: ws ? 'server.js:36' : 'server.js:12',
+        act: () => hold('n-srv', 750),
+      },
+      {
+        who: 'auth',
+        t: sinToken ? 'autenticar no encuentra "Bearer …" (o la firma no cuadra) y devuelve null. El gateway no corta aquí: deja ctx.usuario = null y sigue.'
+          : c.token === 'admin' ? 'jwt.verify comprueba la firma HS256 con ETER_JWT_SECRET, el mismo secreto de los microservicios. El usuario queda en el contexto.'
+          : 'La firma es válida y el token no trae roles. El gateway no revisa roles: esa regla la aplica cada microservicio.',
+        code: sinToken ? 'ctx.usuario = null' : `ctx.usuario = { email: "79123456@eter.edu.co", nitUniv: "${NIT}", roles: ${roles} }`,
+        ref: 'auth.js:10',
+        act: async () => { await fly(['e-srv-auth'], { tag: 'JWT', who: 'srv' }); await hold('n-auth', 750); },
+      },
+    ];
+  }
+
+  const enResolvers = (t, ref, extra = {}) => ({
+    who: 'res', t, ref, ...extra,
+    act: async () => { await fly(['e-auth-res'], { tag: 'ctx', who: 'auth' }); await hold('n-res', 600); },
+  });
+
+  function respuesta(cuerpo, status = 200, t) {
+    const mala = status >= 400;
+    return {
+      who: 'fe',
+      t: t ?? (cuerpo.errors
+        ? 'Yoga responde HTTP 200 con data y errors: GraphQL informa el fallo por campo, no con el status HTTP.'
+        : 'Yoga serializa el resultado y lo devuelve al frontend.'),
+      pill: String(status), ref: 'server.js:12',
+      act: async () => {
+        await fly(['e-res-srv', 'r-srv-up', ['e-fe-srv', true]], { tag: String(status), who: mala ? 'err' : 'srv', kind: mala ? 'err' : 'res' });
+        mostrar(cuerpo, { pill: `HTTP ${status}`, txt: cuerpo.errors ? 'respuesta con errors' : 'respuesta a la operación' }, mala);
+        await hold('n-fe', 500);
+      },
+    };
+  }
+
+  function rechazo(campo, data = null) {
+    return [
+      { who: 'res', t: 'exigirUsuario no encuentra ctx.usuario y lanza UNAUTHENTICATED. Ningún microservicio recibe la petición.', ref: 'auth.js:26', pill: '401', act: () => hold('n-res', 750, 'hit') },
+      respuesta({ errors: [{ message: 'Token ausente o invalido.', locations: LOC, path: [campo], extensions: { code: 'UNAUTHENTICATED' } }], data }, 401,
+        'Yoga toma el status de extensions.http del error y responde 401.'),
+    ];
+  }
+
+  const espera = (caidos) => caidos.length
+    ? ` ${caidos.map((x) => NOMBRE[x]).join(' y ')} ${caidos.length > 1 ? 'están caídos' : 'está caído'}: el evento se queda en el log y se procesa cuando vuelva, porque su offset no avanzó.`
+    : '';
+
+  const PRESTAMOS = [
+    { idPrestamo: '5b0e2c1a-8d4f-4a7e-b1c3-2f9e6d0a4b17', estado: 'DEVUELTO', activo: { descripcion: 'Portátil Dell Latitude 5440' } },
+    { idPrestamo: '9a3d7f60-2e1b-4c8a-a5d9-7b4e0c6f1a28', estado: 'VIGENTE', activo: { descripcion: 'Cámara Canon EOS R10' } },
+    { idPrestamo: 'c41f8e20-7b3a-4d1e-9f62-0a5b8d3e7c19', estado: 'VIGENTE', activo: { descripcion: 'Portátil Dell Latitude 5440' } },
+    { idPrestamo: '1e7b4d93-6a0c-4f5e-8b2d-3c9a7e1f0d64', estado: 'VIGENTE', activo: { descripcion: 'Osciloscopio Rigol DS1054Z' } },
+    { idPrestamo: '7f22a8c5-0d3e-4b9f-a6c1-5e8d2b7f9a03', estado: 'DEVUELTO', activo: { descripcion: 'Cámara Canon EOS R10' } },
+  ];
+  const NOTI_REG = { titulo: 'Préstamo registrado', mensaje: 'Se registró el préstamo del activo AF-2026-0002. Devolución pactada: 2026-11-04 18:00.', placaInventario: 'AF-2026-0002' };
+  const NOTI_VENC = { titulo: 'Préstamo vencido', mensaje: 'El préstamo del activo AF-2026-0004 venció el 2026-10-27 a las 18:00.', placaInventario: 'AF-2026-0004' };
+
+  // ── Escenarios ────────────────────────────────────────────────────────────
+  const ESC = {
+    resumen: {
+      k: 'QUERY', n: 'Resumen de inicio', d: 'tres servicios en paralelo',
+      intro: 'Una sola petición del frontend se convierte en tres llamadas simultáneas.',
+      op: 'query Inicio {\n  resumen {\n    totalActivos\n    prestamosVigentes\n    prestamosVencidos\n    notificacionesNoLeidas\n  }\n}',
+      plan(c) {
+        const s = entrada(c);
+        if (c.token === 'none') return [...s, enResolvers('Query.resumen llama a resolverNit para sacar el NIT del token.', 'resolvers.js:159'), ...rechazo('resumen')];
+        const svcs = ['act', 'pre', 'not'];
+        const caido = svcs.find((x) => c.down.has(x));
+        s.push(enResolvers('Query.resumen saca el nitUniv del token con resolverNit y lanza tres llamadas a la vez con Promise.all.', 'resolvers.js:158'));
+        s.push({
+          who: 'http',
+          t: 'llamar() hace los tres fetch en paralelo, cada uno con el mismo JWT. Cada servicio valida el token y el tenant y consulta su propio esquema en PostgreSQL.',
+          code: [
+            `GET ${HOST.act}/api/v1/activos/activos-fijos?nitUniv=${NIT}`,
+            `GET ${HOST.pre}/api/v1/activos/prestamos?nitUniv=${NIT}&estado=VIGENTE`,
+            `GET ${HOST.not}/api/v1/notificaciones?page=0&size=1&soloNoLeidas=false`,
+          ].join('\n'),
+          pill: caido ? '✕' : '200 ×3', ref: 'http.js:14',
+          act: () => Promise.all(svcs.map((x, i) => rest(x, { caido: c.down.has(x), retraso: i * 90 }))),
+        });
+        if (caido) {
+          s.push({ who: 'res', t: `El fetch a ${NOMBRE[caido]} falla, http.js lo convierte en SERVICE_UNAVAILABLE y Promise.all se rechaza entero. resumen es Resumen! (no admite null), así que data queda en null aunque los otros servicios sí respondieron.`, ref: 'http.js:33', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push(respuesta({ errors: [errSvc(NOMBRE[caido], ['resumen'])], data: null }));
+        } else {
+          s.push({ who: 'res', t: 'Con las tres respuestas, resolvers.js cuenta los activos, filtra los préstamos vencidos y toma noLeidas de la página de notificaciones.', ref: 'resolvers.js:165', act: () => hold('n-res', 800) });
+          s.push(respuesta({ data: { resumen: { totalActivos: 12, prestamosVigentes: 3, prestamosVencidos: 1, notificacionesNoLeidas: 4 } } }));
+        }
+        return s;
+      },
+    },
+
+    detalle: {
+      k: 'QUERY', n: 'Detalle de un activo', d: 'solo consulta lo que pides',
+      intro: 'Los campos que viven en otro servicio solo se consultan si la query los pide.',
+      op: 'query DetalleActivo {\n  activo(placaInventario: "AF-2026-0001") {\n    descripcion\n    estado\n    prestamoVigente { idPrestamo numDocumento fechaDevolucionPactada vencido }\n    movimientos(tipo: PRESTAMO) { fechaMovimiento numDocumento }\n  }\n}',
+      plan(c) {
+        const s = entrada(c);
+        if (c.token === 'none') return [...s, enResolvers('Query.activo llama a resolverNit para sacar el NIT del token.', 'resolvers.js:183'), ...rechazo('activo', { activo: null })];
+        s.push(enResolvers('Query.activo llama a obtenerActivo. memo guarda la promesa en ctx.cache con la clave activo:900123456-1:AF-2026-0001, para que otro campo de la misma petición la reutilice.', 'resolvers.js:181'));
+        const actC = c.down.has('act');
+        s.push({ who: 'act', t: 'GET del activo por NIT y placa.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0001`, pill: actC ? '✕' : '200', ref: 'resolvers.js:34', act: () => rest('act', { caido: actC }) });
+        if (actC) {
+          s.push({ who: 'res', t: 'Query.activo solo convierte NOT_FOUND en null. SERVICE_UNAVAILABLE sube como error: activo queda en null y prestamoVigente y movimientos ni se consultan.', ref: 'resolvers.js:184', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push(respuesta({ errors: [errSvc('activos', ['activo'])], data: { activo: null } }));
+          return s;
+        }
+        const preC = c.down.has('pre'), invC = c.down.has('inv');
+        s.push({ who: 'res', t: 'descripcion y estado ya llegaron con el activo. prestamoVigente y movimientos viven en otros servicios, así que GraphQL ejecuta sus resolvers, los dos a la vez. Notificaciones no recibe nada: la query no pidió ningún campo suyo.', ref: 'resolvers.js:298', act: async () => { $('#n-not').classList.add('skip'); await hold('n-res', 700); } });
+        s.push({
+          who: 'http',
+          t: 'ActivoFijo.prestamoVigente pide a préstamos el préstamo VIGENTE de esa placa y ActivoFijo.movimientos pide a inventario los movimientos tipo PRESTAMO.',
+          code: `GET ${HOST.pre}/api/v1/activos/prestamos?nitUniv=${NIT}&placaInventario=AF-2026-0001&estado=VIGENTE\nGET ${HOST.inv}/api/v1/activos/movimientos-inventario?nitUniv=${NIT}&placaInventario=AF-2026-0001&tipoMovimiento=PRESTAMO`,
+          pill: preC || invC ? '✕' : '200 ×2', ref: 'resolvers.js:304',
+          act: async () => { await Promise.all([rest('pre', { caido: preC }), rest('inv', { caido: invC, retraso: 90 })]); $('#n-not').classList.remove('skip'); },
+        });
+        const activoOk = {
+          descripcion: 'Portátil Dell Latitude 5440', estado: 'ACTIVO',
+          prestamoVigente: { idPrestamo: 'c41f8e20-7b3a-4d1e-9f62-0a5b8d3e7c19', numDocumento: '79123456', fechaDevolucionPactada: '2026-11-04T18:00', vencido: false },
+          movimientos: [
+            { fechaMovimiento: '2026-10-20T08:00', numDocumento: '79123456' },
+            { fechaMovimiento: '2026-09-15T09:30', numDocumento: '1012345678' },
+          ],
+        };
+        const errores = [];
+        if (preC) errores.push(errSvc('prestamos', ['activo', 'prestamoVigente'], [{ line: 5, column: 5 }]));
+        if (invC) errores.push(errSvc('inventario', ['activo', 'movimientos'], [{ line: 6, column: 5 }]));
+        if (invC) {
+          s.push({ who: 'res', t: 'movimientos es [Movimiento!]! (no admite null). Su error sube al campo padre y el activo completo queda en null, aunque activos sí respondió.', ref: 'schema.graphql:24', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push(respuesta({ errors: errores, data: { activo: null } }));
+        } else if (preC) {
+          s.push({ who: 'res', t: 'prestamoVigente admite null, así que solo ese campo falla: queda en null con su error y el resto del activo llega completo.', ref: 'schema.graphql:26', pill: 'parcial', act: () => hold('n-res', 800) });
+          s.push(respuesta({ errors: errores, data: { activo: { ...activoOk, prestamoVigente: null } } }));
+        } else {
+          s.push(respuesta({ data: { activo: activoOk } }));
+        }
+        return s;
+      },
+    },
+
+    memo: {
+      k: 'QUERY', n: 'Préstamos con su activo', d: 'memo evita el N+1',
+      intro: 'Cinco préstamos piden su activo, pero solo salen tres llamadas a activos.',
+      op: 'query PrestamosConActivo {\n  prestamos {\n    idPrestamo\n    estado\n    activo { descripcion }\n  }\n}',
+      plan(c) {
+        const s = entrada(c);
+        if (c.token === 'none') return [...s, enResolvers('Query.prestamos llama a resolverNit para sacar el NIT del token.', 'resolvers.js:203'), ...rechazo('prestamos')];
+        const preC = c.down.has('pre'), actC = c.down.has('act');
+        s.push(enResolvers('Query.prestamos pide la lista completa de préstamos de la universidad.', 'resolvers.js:202'));
+        s.push({ who: 'pre', t: 'GET de los préstamos del NIT que trae el token.', code: `GET ${HOST.pre}/api/v1/activos/prestamos?nitUniv=${NIT}`, pill: preC ? '✕' : '200', ref: 'resolvers.js:46', act: () => rest('pre', { caido: preC }) });
+        if (preC) {
+          s.push({ who: 'res', t: 'prestamos es [Prestamo!]! en la raíz y no admite null: data queda en null.', ref: 'schema.graphql:106', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push(respuesta({ errors: [errSvc('prestamos', ['prestamos'])], data: null }));
+          return s;
+        }
+        s.push({
+          who: 'res',
+          t: 'Llegan 5 préstamos de 3 activos distintos. GraphQL ejecuta Prestamo.activo 5 veces, pero memo solo deja salir 3 fetch: los 2 préstamos que repiten placa reciben la promesa que ya está en ctx.cache. Sin memo serían 1 + 5 = 6 llamadas; con memo son 1 + 3 = 4.',
+          ref: 'resolvers.js:16', pill: 'memo ×2',
+          act: async () => { await hold('n-res', 500); memo(1); await hold('chip-memo', 500, 'flash'); memo(2); await hold('chip-memo', 500, 'flash'); },
+        });
+        s.push({
+          who: 'act', t: 'Tres GET a activos, uno por placa distinta, en paralelo.',
+          code: ['AF-2026-0001', 'AF-2026-0003', 'AF-2026-0004'].map((p) => `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/${p}`).join('\n'),
+          pill: actC ? '✕' : '200 ×3', ref: 'resolvers.js:327',
+          act: () => Promise.all([0, 1, 2].map((i) => rest('act', { caido: actC, retraso: i * 220 }))),
+        });
+        if (actC) {
+          s.push({ who: 'res', t: 'activoRelacionado solo perdona NOT_FOUND. Cada Prestamo.activo (admite null) queda en null con su error, pero la lista de préstamos llega igual.', ref: 'resolvers.js:331', pill: 'parcial', act: () => hold('n-res', 800, 'hit') });
+          s.push(respuesta({
+            errors: PRESTAMOS.map((_, i) => errSvc('activos', ['prestamos', i, 'activo'], [{ line: 5, column: 5 }])),
+            data: { prestamos: PRESTAMOS.map((p) => ({ ...p, activo: null })) },
+          }));
+        } else {
+          s.push(respuesta({ data: { prestamos: PRESTAMOS } }));
+        }
+        return s;
+      },
+    },
+
+    crear: {
+      k: 'MUTATION', n: 'Crear un préstamo', d: 'mutation, Kafka y aviso',
+      intro: 'La respuesta llega rápido; los eventos siguen después por Kafka.',
+      op: 'mutation NuevoPrestamo {\n  crearPrestamo(input: {\n    placaInventario: "AF-2026-0002"\n    numDocumento: "79123456"\n    fechaSalida: "2026-10-28T08:00:00"\n    fechaDevolucionPactada: "2026-11-04T18:00:00"\n  }) {\n    idPrestamo\n    estado\n    activo { descripcion }\n  }\n}',
+      plan(c) {
+        const s = entrada(c);
+        if (c.token === 'none') return [...s, enResolvers('Mutation.crearPrestamo llama a resolverNit para sacar el NIT del token.', 'resolvers.js:264'), ...rechazo('crearPrestamo')];
+        const preC = c.down.has('pre'), actC = c.down.has('act'), invC = c.down.has('inv'), notC = c.down.has('not');
+        s.push(enResolvers('Mutation.crearPrestamo copia el input y le agrega el nitUniv del token. El cliente nunca manda el NIT.', 'resolvers.js:261', { code: `{ ...input, nitUniv: "${NIT}" }` }));
+        const post = { who: 'pre', code: `POST ${HOST.pre}/api/v1/activos/prestamos`, ref: 'http.js:22' };
+        const irAPre = () => fly(['e-res-http', 'r-http', 'e-http-pre'], { tag: 'POST', who: 'pre' });
+        const volverDePre = (tag, kind, who) => fly([['e-http-pre', true], ['r-http', true], ['e-res-http', true]], { tag, who, kind });
+        if (preC) {
+          s.push({ ...post, t: 'http.js manda el POST, pero préstamos no contesta.', pill: '✕', act: async () => { await irAPre(); await hold('n-pre', 450, 'hit'); await volverDePre('✕', 'err', 'err'); } });
+          s.push({ who: 'res', t: 'http.js lo convierte en SERVICE_UNAVAILABLE. crearPrestamo es Prestamo! (no admite null), así que data queda en null. No se creó nada.', ref: 'http.js:33', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push(respuesta({ errors: [errSvc('prestamos', ['crearPrestamo'])], data: null }));
+          return s;
+        }
+        if (c.token === 'lector') {
+          s.push({ ...post, t: 'Préstamos revisa el rol antes de nada: todo lo que no es GET exige un rol de ETER_ROLES_ESCRITURA (ADMIN). Responde 403.', pill: '403', ref: 'SecurityConfig.java:58', act: async () => { await irAPre(); await hold('n-pre', 650, 'hit'); await volverDePre('403', 'err', 'err'); } });
+          s.push({ who: 'http', t: 'http.js lee el problem+json y traduce el 403 a FORBIDDEN, con el mensaje que mandó el servicio.', ref: 'http.js:43', pill: 'error', act: () => hold('n-http', 700, 'hit') });
+          s.push(respuesta({ errors: [{ message: 'Su rol no tiene permiso para realizar esta operación.', locations: LOC, path: ['crearPrestamo'], extensions: { code: 'FORBIDDEN', servicio: 'prestamos', status: 403 } }], data: null }));
+          return s;
+        }
+        s.push({ ...post, t: 'http.js manda el POST a préstamos con el mismo Authorization. El rol ADMIN pasa la regla de escritura.', act: irAPre });
+        s.push({
+          who: 'pre', t: 'Antes de guardar, préstamos pregunta a activos si la placa existe, reenviando el mismo JWT.',
+          code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0002`, pill: actC ? '✕' : '200', ref: 'ActivoRestClient.java:42',
+          act: async () => {
+            await hold('n-pre', 400);
+            await fly(['e-pre-act'], { tag: 'GET', who: 'act' });
+            if (actC) { await hold('n-act', 450, 'hit'); await fly([['e-pre-act', true]], { tag: '✕', who: 'err', kind: 'err' }); }
+            else { await hold('n-act', 550); await fly([['e-pre-act', true]], { tag: '200', who: 'act', kind: 'res' }); }
+          },
+        });
+        if (actC) {
+          s.push({ who: 'pre', t: 'Sin activos no se puede saber si la placa existe: préstamos responde 503 y no guarda nada. http.js lo convierte en SERVICE_UNAVAILABLE.', ref: 'ActivoRestClient.java:53', pill: '503', act: async () => { await hold('n-pre', 500, 'hit'); await volverDePre('503', 'err', 'err'); } });
+          s.push(respuesta({ errors: [{ message: 'No fue posible verificar el activo porque el servicio de activos no está disponible. Intente de nuevo en unos minutos.', locations: LOC, path: ['crearPrestamo'], extensions: { code: 'SERVICE_UNAVAILABLE', servicio: 'prestamos', status: 503 } }], data: null }));
+          return s;
+        }
+        s.push({ who: 'pre', t: 'Préstamos guarda el préstamo y la fila outbox_event (PRESTAMO_CREADO) en la misma transacción, y responde 201. Todavía no toca Kafka.', ref: 'EVENTOS_KAFKA.md §7', pill: '201', act: async () => { await Promise.all([hold('n-pre', 900), hold('chip-pre-outbox', 900)]); await volverDePre('201', 'res', 'pre'); } });
+        s.push({ who: 'act', t: 'La mutation pidió activo { descripcion }, así que Prestamo.activo hace una llamada más a activos. La consulta que hizo préstamos no sirve aquí: fue de servicio a servicio, fuera del caché del gateway.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0002`, pill: '200', ref: 'resolvers.js:321', act: () => rest('act') });
+        s.push(respuesta({ data: { crearPrestamo: { idPrestamo: 'e8b54a71-3c0d-4f2a-b6e9-58d1f7a2c043', estado: 'VIGENTE', activo: { descripcion: 'Videobeam Epson PowerLite E20' } } } }, 200,
+          'El frontend ya tiene su respuesta. Lo que sigue pasa después y nadie lo espera.'));
+        s.push({ sep: 'Después de responder · asincrónico' });
+        s.push({ who: 'pre', t: 'OutboxPublisher (cada 5 s) toma el evento pendiente y lo publica en eter.prestamos.eventos.v1 con key 900123456-1:AF-2026-0002 y acks=all. Después marca published_at.', code: 'PRESTAMO_CREADO  eventId 3f0f6a3e-6c55-4a8e-9a57-2d0f6f1d6f10', pill: 'evt', ref: 'EVENTOS_KAFKA.md §7', act: async () => { await hold('chip-pre-outbox', 600); await fly(['e-pre-kp'], { tag: 'evt', who: 'pre', kind: 'evt' }); } });
+        s.push({ who: 'kafka', t: 'Kafka entrega el mismo evento a dos grupos de consumidores independientes: eter-notificaciones-v2 y eter-inventario-v1.' + espera(['inv', 'not'].filter((x) => c.down.has(x))), pill: 'evt', ref: 'EVENTOS_KAFKA.md §3', act: () => Promise.all([entregar('kp', 'not', notC, 'pre'), entregar('kp', 'inv', invC, 'pre')]) });
+        if (!notC) s.push({ who: 'not', t: 'Notificaciones hace SET eter:idem:eter-notificaciones-v2:{eventId} NX en Redis. Es nuevo, así que guarda «Préstamo registrado» para 79123456@eter.edu.co.', ref: 'EVENTOS_KAFKA.md §7', act: () => Promise.all([hold('n-not', 900), hold('chip-not-redis', 900)]) });
+        if (!invC) s.push({ who: 'inv', t: 'Inventario hace la misma revisión en Redis con su propio grupo y registra el movimiento PRESTAMO en el kardex, con idempotency_key evt:{eventId}.', ref: 'EVENTOS_KAFKA.md §5', act: () => Promise.all([hold('n-inv', 900), hold('chip-inv-redis', 900)]) });
+        if (!notC) {
+          s.push({
+            who: 'res', t: 'Si el frontend tiene abierta la suscripción notificacionRecibida, en la siguiente vuelta (5 s como máximo) el gateway ve la notificación nueva y la empuja por el WebSocket.',
+            code: `GET ${HOST.not}/api/v1/notificaciones?page=0&size=50&soloNoLeidas=true`, pill: 'WS', ref: 'resolvers.js:95',
+            act: async () => {
+              await rest('not');
+              await fly(['e-res-srv', 'r-srv-up', ['e-fe-srv', true]], { tag: 'WS', who: 'srv', kind: 'ws' });
+              mostrar(wsNext(NOTI_REG), { pill: 'WS', txt: 'mensaje next de la suscripción' });
+            },
+          });
+        }
+        return s;
+      },
+    },
+
+    baja: {
+      k: 'MUTATION', n: 'Dar de baja un activo', d: 'DELETE y evento Kafka al kardex',
+      intro: 'La baja responde enseguida; el kardex de inventario se actualiza solo, por Kafka.',
+      op: 'mutation Baja {\n  darDeBajaActivo(placaInventario: "AF-2026-0007") {\n    placaInventario\n    estado\n  }\n}',
+      plan(c) {
+        const s = entrada(c);
+        if (c.token === 'none') return [...s, enResolvers('Mutation.darDeBajaActivo llama a resolverNit para sacar el NIT del token.', 'resolvers.js:236'), ...rechazo('darDeBajaActivo')];
+        const actC = c.down.has('act'), invC = c.down.has('inv');
+        s.push(enResolvers('Mutation.darDeBajaActivo arma la ruta con el nitUniv del token.', 'resolvers.js:235'));
+        const del = { who: 'act', code: `DELETE ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0007`, ref: 'resolvers.js:237' };
+        if (actC) {
+          s.push({ ...del, t: 'http.js manda el DELETE, pero activos no contesta.', pill: '✕', act: () => rest('act', { metodo: 'DELETE', caido: true }) });
+          s.push({ who: 'res', t: 'SERVICE_UNAVAILABLE: no hubo baja y data queda en null.', ref: 'http.js:33', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push(respuesta({ errors: [errSvc('activos', ['darDeBajaActivo'])], data: null }));
+          return s;
+        }
+        if (c.token === 'lector') {
+          s.push({ ...del, t: 'Activos revisa el rol: DELETE exige ADMIN. Responde 403 y http.js lo traduce a FORBIDDEN.', pill: '403', ref: 'SecurityConfig.java:58', act: () => rest('act', { metodo: 'DELETE', status: 403, proceso: () => hold('n-act', 650, 'hit') }) });
+          s.push(respuesta({ errors: [{ message: 'Su rol no tiene permiso para realizar esta operación.', locations: LOC, path: ['darDeBajaActivo'], extensions: { code: 'FORBIDDEN', servicio: 'activos', status: 403 } }], data: null }));
+          return s;
+        }
+        s.push({ ...del, t: 'Activos hace la baja lógica y, en la misma transacción, guarda ACTIVO_DADO_DE_BAJA en su outbox. Responde 204, sin cuerpo.', pill: '204', act: () => rest('act', { metodo: 'DELETE', status: 204, proceso: () => Promise.all([hold('n-act', 900), hold('chip-act-outbox', 900)]) }) });
+        s.push({ who: 'res', t: 'invalidarActivos borra del caché las claves activo… y obtenerActivo vuelve a pedir el activo para devolverlo ya en BAJA.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0007`, pill: '200', ref: 'resolvers.js:242', act: () => rest('act') });
+        s.push(respuesta({ data: { darDeBajaActivo: { placaInventario: 'AF-2026-0007', estado: 'BAJA' } } }));
+        s.push({ sep: 'Después de responder · asincrónico' });
+        s.push({ who: 'act', t: 'OutboxPublisher de activos publica ACTIVO_DADO_DE_BAJA en eter.activos.eventos.v1, con key 900123456-1:AF-2026-0007.', pill: 'evt', ref: 'EVENTOS_KAFKA.md §6', act: async () => { await hold('chip-act-outbox', 600); await fly(['e-act-ka'], { tag: 'evt', who: 'act', kind: 'evt' }); } });
+        s.push({ who: 'kafka', t: invC ? 'Inventario está caído: el evento se queda en el log y se procesa cuando vuelva, porque su offset no avanzó.' : 'Inventario (grupo eter-inventario-v1) consume el evento.', pill: 'evt', ref: 'EVENTOS_KAFKA.md §3', act: () => entregar('ka', 'inv', invC, 'act') });
+        if (!invC) s.push({ who: 'inv', t: 'Revisa Redis y registra el movimiento BAJA en el kardex. Nadie tuvo que llamar a mano a POST /movimientos-inventario.', ref: 'EVENTOS_KAFKA.md §6', act: () => Promise.all([hold('n-inv', 900), hold('chip-inv-redis', 900)]) });
+        return s;
+      },
+    },
+
+    sub: {
+      k: 'SUBSCRIPTION', n: 'Suscripción a avisos', d: 'el aviso nace en Kafka y llega por WebSocket',
+      intro: 'El frontend ve tiempo real, pero por dentro el gateway pregunta cada 5 s.',
+      op: 'subscription Avisos {\n  notificacionRecibida {\n    titulo\n    mensaje\n    placaInventario\n  }\n}',
+      plan(c) {
+        const s = entrada(c, true);
+        if (c.token === 'none') {
+          s.push(enResolvers('subscribe llama a token(ctx) y exigirUsuario lanza UNAUTHENTICATED antes de empezar a vigilar.', 'resolvers.js:294', { pill: 'error' }));
+          s.push({
+            who: 'fe', t: 'graphql-ws manda el error en un mensaje next y cierra la suscripción con complete.', pill: 'WS', ref: 'server.js:32',
+            act: async () => {
+              await fly(['e-res-srv', 'r-srv-up', ['e-fe-srv', true]], { tag: 'error', who: 'err', kind: 'err' });
+              mostrar({ id: '1', type: 'next', payload: { errors: [{ message: 'Token ausente o invalido.', locations: LOC, path: ['notificacionRecibida'], extensions: { code: 'UNAUTHENTICATED' } }] } }, { pill: 'WS', txt: 'mensaje next con errors' }, true);
+              mostrar({ id: '1', type: 'complete' }, { pill: 'WS', txt: 'fin de la suscripción' });
+            },
+          });
+          return s;
+        }
+        const notC = c.down.has('not'), invC = c.down.has('inv');
+        const sondeo = `GET ${HOST.not}/api/v1/notificaciones?page=0&size=50&soloNoLeidas=true`;
+        s.push(enResolvers('subscribe crea vigilarNotificaciones(jwt): un iterador propio que pregunta a notificaciones cada 5 s (ETER_POLL_NOTIFICACIONES_MS).', 'resolvers.js:82'));
+        if (notC) {
+          s.push({ who: 'not', t: 'Primera vuelta: notificaciones no contesta. sondear ignora el error y programa otra vuelta; solo cierra la suscripción si el error es UNAUTHENTICATED o FORBIDDEN.', code: sondeo, pill: '✕', ref: 'resolvers.js:106', act: () => rest('not', { caido: true }) });
+          s.push({ who: 'res', t: '5 s después, otra vuelta. Sigue sin respuesta.', code: sondeo, pill: '✕', ref: 'resolvers.js:113', act: async () => { await sleep(600); await rest('not', { caido: true }); } });
+          s.push({ who: 'fe', t: 'El frontend no recibe nada ni ve un error: la suscripción sigue viva y reintenta cada 5 s hasta que notificaciones vuelva.', act: () => hold('n-fe', 700) });
+        } else {
+          s.push({ who: 'not', t: 'Primera vuelta: llegan 4 no leídas. Solo se guardan en vistas como línea base; no se empujan, porque esas ya las muestra la query.', code: sondeo, pill: '200', ref: 'resolvers.js:102', act: () => rest('not') });
+          s.push({ who: 'pre', t: 'Mientras tanto, el vigía de préstamos (cada 30 s en docker compose) encuentra vencido el préstamo de AF-2026-0004 y publica PRESTAMO_VENCIDO por el outbox.', pill: 'evt', ref: 'EVENTOS_KAFKA.md §5', act: async () => { await hold('n-pre', 700); await fly(['e-pre-kp'], { tag: 'evt', who: 'pre', kind: 'evt' }); } });
+          s.push({
+            who: 'kafka', t: 'Notificaciones crea «Préstamo vencido». Inventario también recibe el evento, pero lo ignora: un vencimiento no mueve el kardex.' + (invC ? ' Como inventario está caído, su copia espera en el log.' : ''),
+            pill: 'evt', ref: 'EVENTOS_KAFKA.md §5',
+            act: async () => {
+              await Promise.all([entregar('kp', 'not', false, 'pre'), entregar('kp', 'inv', invC, 'pre')]);
+              await Promise.all([hold('n-not', 800), hold('chip-not-redis', 800), invC ? null : hold('n-inv', 500)]);
+            },
+          });
+          s.push({ who: 'not', t: 'Siguiente vuelta: ahora hay 5 no leídas y una no está en vistas. Va a la cola del iterador.', code: sondeo, pill: '200', ref: 'resolvers.js:99', act: () => rest('not') });
+          s.push({
+            who: 'srv', t: 'next() saca la nueva de la cola y graphql-ws la manda por el WebSocket abierto.', pill: 'WS', ref: 'resolvers.js:127',
+            act: async () => {
+              await fly(['e-res-srv', 'r-srv-up', ['e-fe-srv', true]], { tag: 'WS', who: 'srv', kind: 'ws' });
+              mostrar(wsNext(NOTI_VENC), { pill: 'WS', txt: 'mensaje next de la suscripción' });
+              await hold('n-fe', 500);
+            },
+          });
+        }
+        s.push({
+          who: 'fe', t: 'Cuando el frontend cierra la suscripción, graphql-ws llama return(): cerrado = true y clearTimeout. El sondeo se detiene aunque esté a mitad de una espera.', pill: 'WS', ref: 'resolvers.js:137',
+          act: async () => { await fly(['e-fe-srv'], { tag: 'complete', who: 'fe' }); await Promise.all([hold('n-srv', 600), hold('n-res', 600)]); },
+        });
+        return s;
+      },
+    },
+  };
+
+  // ── Traza ─────────────────────────────────────────────────────────────────
+  const clasePill = (p) => /^(✕|[45]\d\d|error)/.test(p) ? ' bad' : p === 'parcial' ? ' warn' : p === 'evt' ? ' evt' : '';
+  function pintarTraza() {
+    const ol = $('#trace');
+    ol.innerHTML = '';
+    let n = 0;
+    for (const p of plan) {
+      const li = document.createElement('li');
+      p.li = li;
+      if (p.sep) { li.className = 'sep'; li.textContent = p.sep; ol.append(li); continue; }
+      p.n = ++n;
+      li.className = 'st pending';
+      const [etq, c] = WHO[p.who];
+      li.style.setProperty('--wc', `var(${c})`);
+      li.innerHTML =
+        `<span class="st-n">${n}</span>` +
+        `<div class="st-b"><p class="st-t"><span class="st-who"><i></i>${esc(etq)}</span>${esc(p.t)}</p>${p.code ? `<code class="st-c">${esc(p.code)}</code>` : ''}</div>` +
+        `<div class="st-m">${p.pill ? `<span class="pill${clasePill(p.pill)}">${esc(p.pill)}</span>` : ''}${p.ref ? `<span class="ref">${esc(p.ref)}</span>` : ''}</div>`;
+      ol.append(li);
+    }
+    total = n;
+    $('#nsteps').textContent = `${n} pasos`;
+  }
+  function desplazar(li) {
+    const box = $('#trace');
+    const top = li.offsetTop - 40;
+    if (top < box.scrollTop || li.offsetTop + li.offsetHeight > box.scrollTop + box.clientHeight) {
+      box.scrollTo({ top, behavior: reducido ? 'auto' : 'smooth' });
+    }
+  }
+
+  // ── Ejecución ─────────────────────────────────────────────────────────────
+  function narrar(k, t) { $('#narrK').textContent = k; $('#narrT').textContent = t; }
+
+  function actualizarBoton() {
+    const b = $('#run');
+    if (esperando) { b.textContent = 'Siguiente paso'; b.disabled = false; }
+    else if (corriendo) { b.textContent = 'Ejecutando…'; b.disabled = true; }
+    else { b.textContent = 'Ejecutar'; b.disabled = false; }
+  }
+
+  function limpiar() {
+    capa.replaceChildren();
+    calor.clear();
+    $$('#diagram .hot').forEach((e) => e.classList.remove('hot'));
+    $$('#diagram .busy, #diagram .hit, #diagram .skip, #diagram .flash').forEach((e) => e.classList.remove('busy', 'hit', 'skip', 'flash'));
+    memo(0);
+  }
+
+  function puerta(id) {
+    if (!st.paso) return sleep(380);
+    return new Promise((ok) => { esperando = ok; actualizarBoton(); })
+      .then(() => { esperando = null; actualizarBoton(); vivo(id); });
+  }
+
+  async function ejecutar() {
+    const id = ++runId;
+    corriendo = true;
+    limpiar(); pintarTraza(); limpiarResp(); actualizarBoton();
+    try {
+      for (const p of plan) {
+        if (p.sep) { p.li.classList.add('on'); desplazar(p.li); continue; }
+        p.li.classList.replace('pending', 'active');
+        desplazar(p.li);
+        narrar(`Paso ${p.n} de ${total} · ${WHO[p.who][0]}`, p.t);
+        if (p.act) await p.act();
+        vivo(id);
+        p.li.classList.replace('active', 'done');
+        await puerta(id);
+      }
+      narrar('Fin', 'Cambia la credencial, apaga un servicio o elige otra operación y vuelve a ejecutar.');
+    } catch (e) {
+      if (!(e instanceof Abort)) throw e;
+    } finally {
+      if (id === runId) { corriendo = false; esperando = null; actualizarBoton(); }
+    }
+  }
+
+  function reiniciar() {
+    const e = esperando;
+    runId++;
+    esperando = null; corriendo = false;
+    if (e) e();
+    limpiar();
+    actualizarBoton();
+  }
+
+  function gql(src) {
+    let out = '', ult = 0;
+    src.replace(/("[^"]*")|\b(query|mutation|subscription)\b/g, (m, s, k, i) => {
+      out += esc(src.slice(ult, i)) + `<span class="${s ? 's' : 'k'}">${esc(m)}</span>`;
+      ult = i + m.length;
+      return m;
+    });
+    return out + esc(src.slice(ult));
+  }
+
+  function replanear() {
+    reiniciar();
+    const esc_ = ESC[st.sc];
+    plan = esc_.plan({ token: st.token, down: st.down });
+    pintarTraza();
+    limpiarResp();
+    $('#op').innerHTML = gql(esc_.op);
+    narrar('Listo', `${esc_.intro} Pulsa Ejecutar para ver el recorrido.`);
+  }
+
+  // ── Controles ─────────────────────────────────────────────────────────────
+  const scs = $('#scs');
+  for (const [clave, e] of Object.entries(ESC)) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sc'; b.dataset.sc = clave;
+    b.setAttribute('aria-pressed', String(clave === st.sc));
+    b.innerHTML = `<span class="sc-n">${esc(e.n)}</span><span class="sc-k">${e.k}</span><span class="sc-d">${esc(e.d)}</span>`;
+    b.addEventListener('click', () => {
+      st.sc = clave;
+      $$('.sc', scs).forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      replanear();
+    });
+    scs.append(b);
+  }
+
+  $$('#token button').forEach((b) => b.addEventListener('click', () => {
+    st.token = b.dataset.token;
+    $$('#token button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    replanear();
+  }));
+
+  $$('#speed button').forEach((b) => b.addEventListener('click', () => {
+    st.speed = Number(b.dataset.speed);
+    $$('#speed button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+
+  function apagar(svc, on) {
+    if (on) st.down.add(svc); else st.down.delete(svc);
+    $(`#down-${svc}`).checked = on;
+    $(`#n-${svc}`).classList.toggle('down', on);
+    replanear();
+  }
+  $$('.downs input').forEach((i) => i.addEventListener('change', () => apagar(i.dataset.svc, i.checked)));
+  // El clic en la tarjeta es un atajo de ratón; el control accesible son los checkboxes.
+  $$('#diagram .svc').forEach((g) => g.addEventListener('click', () => apagar(g.dataset.svc, !st.down.has(g.dataset.svc))));
+
+  $('#run').addEventListener('click', () => {
+    if (esperando) esperando();
+    else if (!corriendo) ejecutar();
+  });
+  $('#reset').addEventListener('click', replanear);
+  $('#paso').addEventListener('change', (ev) => {
+    st.paso = ev.target.checked;
+    if (!st.paso && esperando) esperando();
+  });
+
+  layoutChips();
+  document.fonts?.ready.then(layoutChips);
+  replanear();
+})();
+</script>

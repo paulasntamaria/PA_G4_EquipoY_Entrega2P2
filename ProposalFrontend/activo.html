@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Activo · ETER Patrimonio</title>
+  <script src="assets/js/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="assets/css/eter.css">
+  <link rel="stylesheet" href="assets/css/paginas/activo.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="riel" id="riel"></aside>
+    <main class="main" id="main">
+      <header class="cabecera" id="cabecera">
+        <div>
+          <p class="folio"><a href="index.html">Patrimonio</a> / <a href="activos.html">Activos</a></p>
+          <h1 class="titulo">Detalle del activo</h1>
+        </div>
+      </header>
+      <div id="detalle"></div>
+    </main>
+  </div>
+
+  <!-- Editar activo -->
+  <dialog class="dialogo" id="dlg-editar" aria-labelledby="dlg-editar-titulo">
+    <form id="form-editar">
+      <div class="dialogo-cabeza">
+        <div>
+          <h2 class="dialogo-titulo" id="dlg-editar-titulo">Editar activo</h2>
+          <p class="dialogo-nota">La placa <span class="codigo" id="e-placa"></span> queda como está: se fija al registrar el bien y no cambia.</p>
+        </div>
+      </div>
+      <div class="dialogo-cuerpo">
+        <div id="editar-alerta" hidden></div>
+        <div class="rejilla-form">
+          <div class="campo campo--completo">
+            <label for="e-descripcion">Descripción</label>
+            <input class="entrada" id="e-descripcion" name="descripcion" required minlength="3" maxlength="255"
+                   autocomplete="off" aria-describedby="e-descripcion-ayuda">
+            <span class="ayuda" id="e-descripcion-ayuda">De 3 a 255 caracteres: tipo de bien, marca y modelo.</span>
+          </div>
+          <div class="campo">
+            <label for="e-unspsc">Código UNSPSC</label>
+            <input class="entrada entrada--codigo" id="e-unspsc" name="codUnspsc" required pattern="[0-9]{8}" minlength="8" maxlength="8"
+                   inputmode="numeric" autocomplete="off" aria-describedby="e-unspsc-ayuda">
+            <span class="ayuda" id="e-unspsc-ayuda">8 dígitos, ej. 43211503.</span>
+          </div>
+          <div class="campo">
+            <label for="e-sede">Sede</label>
+            <input class="entrada entrada--codigo" id="e-sede" name="codSede" required maxlength="20" list="lista-sedes"
+                   pattern="[A-Za-z0-9]+(-[A-Za-z0-9]+)*" autocomplete="off" spellcheck="false" autocapitalize="characters"
+                   aria-describedby="e-sede-ayuda">
+            <datalist id="lista-sedes"></datalist>
+            <span class="ayuda" id="e-sede-ayuda">Ej. SED-01: letras, números y guiones, máx. 20.</span>
+          </div>
+          <div class="campo">
+            <label for="e-valor">Valor contable (COP)</label>
+            <input class="entrada tabular" id="e-valor" name="valorContable" type="number" required min="0" step="0.0001"
+                   inputmode="decimal" aria-describedby="e-valor-ayuda">
+            <span class="ayuda" id="e-valor-ayuda">Sin puntos de miles, hasta 4 decimales. <span class="valor-vista" id="e-valor-vista"></span></span>
+          </div>
+          <div class="campo">
+            <label for="e-estado">Estado</label>
+            <select class="selector" id="e-estado" name="estado" required aria-describedby="e-estado-ayuda"></select>
+            <span class="ayuda" id="e-estado-ayuda">Para retirarlo usa «Dar de baja»: así inventario asienta la BAJA en el kardex.</span>
+          </div>
+        </div>
+      </div>
+      <div class="dialogo-pie">
+        <button type="button" class="boton" data-cerrar>Cancelar</button>
+        <button type="submit" class="boton boton--primario" id="e-enviar">Guardar cambios</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Registrar devolución -->
+  <dialog class="dialogo" id="dlg-devolucion" aria-labelledby="dlg-devolucion-titulo">
+    <form id="form-devolucion">
+      <div class="dialogo-cabeza">
+        <div>
+          <h2 class="dialogo-titulo" id="dlg-devolucion-titulo">Registrar devolución</h2>
+          <p class="dialogo-nota">Préstamos publica PRESTAMO_DEVUELTO: inventario suma la DEVOLUCION al kardex y el custodio recibe la notificación.</p>
+        </div>
+      </div>
+      <div class="dialogo-cuerpo">
+        <div id="devolucion-alerta" hidden></div>
+        <dl class="ficha ficha--dialogo" id="devolucion-resumen"></dl>
+        <div class="campo">
+          <label for="d-fecha">Fecha y hora real de devolución</label>
+          <input class="entrada" id="d-fecha" name="fechaDevolucionReal" type="datetime-local" required aria-describedby="d-fecha-ayuda">
+          <span class="ayuda" id="d-fecha-ayuda">Por defecto, ahora. No puede ser futura ni anterior a la salida.</span>
+        </div>
+      </div>
+      <div class="dialogo-pie">
+        <button type="button" class="boton" data-cerrar>Cancelar</button>
+        <button type="submit" class="boton boton--primario" id="d-enviar">Registrar devolución</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Asignar a un custodio -->
+  <dialog class="dialogo" id="dlg-asignar" aria-labelledby="dlg-asignar-titulo">
+    <form id="form-asignar">
+      <div class="dialogo-cabeza">
+        <div>
+          <h2 class="dialogo-titulo" id="dlg-asignar-titulo">Asignar a un custodio</h2>
+          <p class="dialogo-nota">Queda el acta de entrega en inventario: quién responde por <span class="codigo" id="a-placa"></span> y desde cuándo.</p>
+        </div>
+      </div>
+      <div class="dialogo-cuerpo">
+        <div id="asignar-alerta" hidden></div>
+        <div class="rejilla-form">
+          <div class="campo">
+            <label for="a-documento">Documento del custodio</label>
+            <input class="entrada entrada--codigo" id="a-documento" name="numDocumento" required pattern="[A-Za-z0-9]{5,20}"
+                   minlength="5" maxlength="20" autocomplete="off" spellcheck="false" placeholder="1012345678"
+                   aria-describedby="a-documento-ayuda">
+            <span class="ayuda" id="a-documento-ayuda">Cédula u otro documento: 5 a 20 letras o números, sin puntos ni espacios.</span>
+          </div>
+          <div class="campo">
+            <label for="a-fecha">Fecha y hora del acta</label>
+            <input class="entrada" id="a-fecha" name="fechaHoraActa" type="datetime-local" required aria-describedby="a-fecha-ayuda">
+            <span class="ayuda" id="a-fecha-ayuda">Cuando se firmó la entrega. Por defecto, ahora.</span>
+          </div>
+        </div>
+      </div>
+      <div class="dialogo-pie">
+        <button type="button" class="boton" data-cerrar>Cancelar</button>
+        <button type="submit" class="boton boton--primario" id="a-enviar">Asignar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/paginas/activo.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plantilla · ETER Patrimonio</title>
+  <script src="assets/js/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="assets/css/eter.css">
+  <!-- Estilos propios de la página (opcional): <link rel="stylesheet" href="assets/css/paginas/NOMBRE.css"> -->
+</head>
+<body>
+  <div class="app">
+    <aside class="riel" id="riel"></aside>
+    <main class="main" id="main">
+      <header class="cabecera">
+        <div>
+          <p class="folio"><a href="index.html">Patrimonio</a> / Plantilla</p>
+          <h1 class="titulo">Título de la página</h1>
+          <p class="bajada">Una línea que dice para qué sirve esta pantalla.</p>
+        </div>
+        <div class="cabecera-acciones">
+          <button type="button" class="boton" id="accion-secundaria">Secundaria</button>
+          <button type="button" class="boton boton--primario" id="accion-principal">Acción principal</button>
+        </div>
+      </header>
+
+      <section class="seccion">
+        <h2 class="seccion-titulo">Sección</h2>
+        <div class="cifras" id="cifras"></div>
+      </section>
+
+      <section class="seccion">
+        <h2 class="seccion-titulo">Registro</h2>
+        <div class="tabla-marco">
+          <table class="tabla">
+            <thead><tr><th>Placa</th><th>Descripción</th><th>Sede</th><th>Estado</th><th class="der">Valor contable</th></tr></thead>
+            <tbody id="filas"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    (async () => {
+      const { ui, api } = ETER;
+      if (!ui.montar({ pagina: 'activos' })) return;
+      const filas = document.getElementById('filas');
+      filas.innerHTML = ui.cargandoFilas(5);
+      try {
+        const [resumen, activos] = await Promise.all([api.resumen(), api.activos()]);
+        document.getElementById('cifras').innerHTML = ui.html`
+          <div class="cifra"><span class="cifra-etiqueta">Activos</span><span class="cifra-valor">${resumen.totalActivos}</span></div>
+          <div class="cifra"><span class="cifra-etiqueta">Préstamos vigentes</span><span class="cifra-valor">${resumen.prestamosVigentes}</span></div>
+          <div class="cifra cifra--peligro"><span class="cifra-etiqueta">Vencidos</span><span class="cifra-valor">${resumen.prestamosVencidos}</span></div>
+          <div class="cifra"><span class="cifra-etiqueta">Sin leer</span><span class="cifra-valor">${resumen.notificacionesNoLeidas}</span></div>`;
+        filas.innerHTML = ui.html`${activos.slice(0, 5).map((a) => ui.html`
+          <tr>
+            <td class="min">${ui.enlaceActivo(a.placaInventario)}</td>
+            <td class="principal">${a.descripcion}<span class="sub">UNSPSC ${a.codUnspsc}</span></td>
+            <td><span class="mono">${a.codSede}</span></td>
+            <td>${ui.estadoActivo(a.estado)}</td>
+            <td class="der">${ui.fmt.moneda(a.valorContable)}</td>
+          </tr>`)}`;
+        document.getElementById('main').insertAdjacentHTML('beforeend', String(ui.html`
+          <section class="seccion"><h2 class="seccion-titulo">Piezas</h2>
+            <div class="fila">${ui.placa('AF-2026-0001', { sede: 'SED-01' })}<span class="sello">Vencido</span><span class="sello sello--ok">Devuelto</span></div>
+          </section>`));
+      } catch (e) {
+        ui.error(e, { en: filas });
+      }
+    })();
+  </script>
+</body>
+</html>

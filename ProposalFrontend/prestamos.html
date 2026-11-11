@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Préstamos · ETER Patrimonio</title>
+  <script src="assets/js/tema.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fjalla+One&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap">
+  <link rel="stylesheet" href="assets/css/eter.css">
+  <link rel="stylesheet" href="assets/css/paginas/prestamos.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="riel" id="riel"></aside>
+    <main class="main" id="main">
+      <header class="cabecera">
+        <div>
+          <p class="folio"><a href="index.html">Patrimonio</a> / Préstamos</p>
+          <h1 class="titulo">Préstamos</h1>
+          <p class="bajada">Salidas temporales de activos a un custodio, con fecha de devolución pactada. Si la fecha pasa sin devolución, el vigía marca el préstamo como vencido y le avisa al custodio.</p>
+        </div>
+        <div class="cabecera-acciones">
+          <button type="button" class="boton boton--primario" id="btn-nuevo">
+            <svg class="icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Nuevo préstamo</span>
+          </button>
+        </div>
+      </header>
+
+      <section aria-label="Resumen de préstamos">
+        <div class="cifras cifras--franja" id="cifras"></div>
+      </section>
+
+      <section class="seccion" aria-labelledby="t-calendario">
+        <h2 class="seccion-titulo" id="t-calendario">Calendario de vigentes</h2>
+        <div class="hoja cal-hoja">
+          <div id="calendario"></div>
+          <div class="cal-notas">
+            <p class="leyenda">
+              <span><i class="ley ley--hecho" aria-hidden="true"></i>Tiempo transcurrido</span>
+              <span><i class="ley ley--plazo" aria-hidden="true"></i>Plazo restante</span>
+              <span><i class="ley ley--mora" aria-hidden="true"></i>Mora: pasó la fecha pactada</span>
+              <span><i class="ley ley--hoy" aria-hidden="true"></i>Hoy</span>
+            </p>
+            <p class="hoja-nota" id="cal-escala"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="seccion seccion--tarjeta" aria-labelledby="t-registro">
+        <h2 class="seccion-titulo" id="t-registro">Registro de préstamos</h2>
+        <div class="filtros">
+          <div class="segmentos" id="segmentos" role="group" aria-label="Filtrar por estado del préstamo">
+            <button type="button" data-filtro="vigentes" aria-pressed="true">Vigentes<span class="cuenta"></span></button>
+            <button type="button" data-filtro="vencidos" aria-pressed="false">Vencidos<span class="cuenta"></span></button>
+            <button type="button" data-filtro="devueltos" aria-pressed="false">Devueltos<span class="cuenta"></span></button>
+            <button type="button" data-filtro="todos" aria-pressed="false">Todos<span class="cuenta"></span></button>
+          </div>
+          <div class="buscador">
+            <label class="sr" for="buscar">Buscar por placa, documento del custodio o descripción del activo</label>
+            <svg class="icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+            <input type="search" class="entrada" id="buscar" placeholder="Placa, documento del custodio o activo" autocomplete="off" spellcheck="false">
+          </div>
+          <p class="conteo" id="conteo" aria-live="polite"></p>
+        </div>
+        <div id="registro"></div>
+        <div id="paginador" hidden></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="dialogo" id="dlg-nuevo" aria-labelledby="dlg-nuevo-titulo">
+    <form id="form-nuevo" novalidate>
+      <div class="dialogo-cabeza">
+        <div>
+          <p class="folio">Préstamos / Salida</p>
+          <h2 class="dialogo-titulo" id="dlg-nuevo-titulo">Nuevo préstamo</h2>
+        </div>
+      </div>
+      <div class="dialogo-cuerpo">
+        <div class="hueco" id="np-alerta"></div>
+
+        <div class="campo">
+          <label for="np-placa">Placa de inventario</label>
+          <input class="entrada entrada--codigo" id="np-placa" name="placaInventario" list="np-activos" required
+                 pattern="[A-Za-z0-9]+(-[A-Za-z0-9]+)*" maxlength="40" autocomplete="off" spellcheck="false"
+                 placeholder="AF-2026-0002" aria-describedby="np-lista">
+          <datalist id="np-activos"></datalist>
+          <span class="ayuda" id="np-lista">Letras, números y guiones, como AF-2026-0001.</span>
+          <div class="hueco" id="np-activo" aria-live="polite"></div>
+        </div>
+
+        <div class="campo">
+          <label for="np-doc">Documento del custodio</label>
+          <input class="entrada entrada--codigo" id="np-doc" name="numDocumento" list="np-custodios" required
+                 minlength="5" maxlength="20" pattern="[A-Za-z0-9]{5,20}" autocomplete="off" spellcheck="false"
+                 placeholder="1012345678" aria-describedby="np-correo">
+          <datalist id="np-custodios"></datalist>
+          <span class="ayuda" id="np-correo"></span>
+        </div>
+
+        <div class="rejilla-form">
+          <div class="campo">
+            <label for="np-salida">Salida</label>
+            <input type="datetime-local" class="entrada" id="np-salida" name="fechaSalida" required>
+          </div>
+          <div class="campo">
+            <label for="np-pactada">Devolución pactada</label>
+            <input type="datetime-local" class="entrada" id="np-pactada" name="fechaDevolucionPactada" required aria-describedby="np-plazo">
+            <span class="ayuda ayuda--vivo" id="np-plazo" aria-live="polite"></span>
+          </div>
+        </div>
+
+        <p class="nota-kafka">Al registrar, préstamos publica <span class="mono">PRESTAMO_CREADO</span> en <span class="mono">eter.prestamos.eventos.v1</span>. Unos segundos después inventario anota la salida en el kardex y notificaciones le avisa al custodio.</p>
+      </div>
+      <div class="dialogo-pie">
+        <button type="button" class="boton" data-cerrar>Cancelar</button>
+        <button type="submit" class="boton boton--primario">Registrar préstamo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="dialogo" id="dlg-devolver" aria-labelledby="dlg-dev-titulo">
+    <form id="form-devolver" novalidate>
+      <div class="dialogo-cabeza">
+        <div>
+          <p class="folio">Préstamos / Devolución</p>
+          <h2 class="dialogo-titulo" id="dlg-dev-titulo">Registrar devolución</h2>
+        </div>
+        <div class="dev-sello" id="dev-sello"></div>
+      </div>
+      <div class="dialogo-cuerpo">
+        <div class="hueco" id="dev-alerta"></div>
+        <div id="dev-resumen"></div>
+        <div class="campo">
+          <label for="dev-fecha">Fecha y hora de devolución</label>
+          <input type="datetime-local" class="entrada" id="dev-fecha" name="fechaDevolucionReal" required aria-describedby="dev-ayuda dev-cumple">
+          <span class="ayuda" id="dev-ayuda">No puede ser futura ni anterior a la salida.</span>
+          <span class="ayuda ayuda--vivo" id="dev-cumple" aria-live="polite"></span>
+        </div>
+        <p class="nota-kafka">Al registrar, préstamos publica <span class="mono">PRESTAMO_DEVUELTO</span> en <span class="mono">eter.prestamos.eventos.v1</span>. Unos segundos después inventario anota la devolución en el kardex y notificaciones le avisa al custodio.</p>
+      </div>
+      <div class="dialogo-pie">
+        <button type="button" class="boton" data-cerrar>Cancelar</button>
+        <button type="submit" class="boton boton--primario">Registrar devolución</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/paginas/prestamos.js"></script>
+</body>
+</html>
