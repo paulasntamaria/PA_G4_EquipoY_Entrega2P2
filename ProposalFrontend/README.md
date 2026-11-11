@@ -46,9 +46,12 @@ python tools/generar_token.py         # JWT de desarrollo (ADMIN, NIT 900123456-
 
 ## Diseño
 
-Sigue el estilo de `Eter-frontend-main.zip`: oscuro por defecto con tema claro, violeta como
-acento, Fjalla One para títulos y cifras, Inter para texto y JetBrains Mono para códigos. Los
-íconos son SVG propios (`ICONOS` en `app.js`).
+Tonos tierra y bosque: papel cálido como fondo, verde pino (`--primario`) como color de marca y
+terracota (`--acento`) para contadores y avatar. Colores planos, sin degradados. Claro por defecto,
+con tema oscuro. Source Sans 3 para títulos y texto, y Source Code Pro para placas y códigos. Los
+íconos son [Material Symbols Outlined](https://fonts.google.com/icons): `ICONOS` en `app.js`
+traduce cada nombre interno al nombre del símbolo, y `ETER.ui.icono('activos')` pinta
+`<span class="icono">sell</span>`. El ícono de la página activa se muestra relleno (`FILL 1`).
 
 El tema, el menú colapsado y las secciones plegadas se guardan en este navegador. En pantallas
 de hasta 900 px el menú lateral pasa a ser un cajón que abre la hamburguesa.
@@ -70,7 +73,9 @@ Reglas para tocar el código:
 - Las páginas usan `ETER.api.*`; el GraphQL vive solo en `api.js`.
 - HTML dinámico siempre con `ETER.ui.html\`…\``, que escapa lo interpolado.
 - Colores solo desde los tokens de `eter.css`. El tema claro y el oscuro salen de ahí.
-- `--f-titulo` (Fjalla One) siempre con peso 400: la fuente no tiene otros.
+- Íconos siempre con `ETER.ui.icono(nombre)` o `<i data-icono="nombre">`; si falta uno, agrégalo a
+  `ICONOS` con el nombre de Material Symbols. Son `<span>`: en CSS, un selector genérico como
+  `> span` también los toma (usa `span:not(.icono)`).
 - La ruta de la barra superior sale del `.folio` de `.cabecera`, y `ETER.ui.montar` agrega ahí el
   ícono del módulo. Si una página reescribe `.cabecera`, ambos se reponen solos.
 - Tablas largas: `ETER.ui.paginador(caja, { alCambiar })` y `.cortar(lista)` antes de pintar.

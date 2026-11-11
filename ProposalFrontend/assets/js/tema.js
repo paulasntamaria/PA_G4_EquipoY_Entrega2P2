@@ -6,7 +6,7 @@
   };
   const raiz = document.documentElement;
   if (!raiz.hasAttribute('data-tema-fijo')) {
-    raiz.dataset.tema = leer('eter.tema') === 'claro' ? 'claro' : 'oscuro';
+    raiz.dataset.tema = leer('eter.tema') === 'oscuro' ? 'oscuro' : 'claro';
   }
   if (leer('eter.menu') === 'colapsado') raiz.dataset.menu = 'colapsado';
 })();

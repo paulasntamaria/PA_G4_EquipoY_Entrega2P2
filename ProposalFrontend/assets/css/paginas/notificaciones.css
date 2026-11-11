@@ -54,7 +54,7 @@
 .notif-hora { font: 500 var(--t-xs)/1.2 var(--f-texto); color: var(--tinta-2); white-space: nowrap; }
 .notif-titulo {
   margin-top: 6px;
-  font: 400 1rem/1.25 var(--f-titulo); color: var(--tinta);
+  font: 600 1rem/1.25 var(--f-titulo); color: var(--tinta);
   overflow-wrap: anywhere;
 }
 .notif-mensaje { font-size: var(--t-sm); color: var(--tinta); max-width: 78ch; overflow-wrap: anywhere; }

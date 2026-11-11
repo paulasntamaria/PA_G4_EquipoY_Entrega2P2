@@ -23,7 +23,7 @@
   padding: 10px 14px; border-bottom: 1px solid var(--regla);
 }
 .resumen-titulo {
-  font: 400 0.9375rem/1.25 var(--f-titulo); color: var(--tinta);
+  font: 600 0.9375rem/1.25 var(--f-titulo); color: var(--tinta);
 }
 .resumen-periodo { font-size: var(--t-xs); color: var(--tinta-2); }
 .resumen-periodo .mono { color: var(--tinta); }
@@ -47,12 +47,12 @@
 }
 .conteo-tipo {
   display: flex; align-items: center; gap: 7px; min-width: 0;
-  font: 600 var(--t-xxs)/1.2 var(--f-texto); letter-spacing: 0.05em; text-transform: uppercase;
+  font: 600 var(--t-xs)/1.2 var(--f-texto);
   color: var(--tinta-2); white-space: nowrap;
 }
 .conteo-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .conteo-n {
-  font: 400 var(--t-2xl)/0.9 var(--f-titulo); letter-spacing: -0.01em;
+  font: 600 var(--t-2xl)/0.9 var(--f-titulo); letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums; color: var(--tinta);
 }
 .conteo-n--cero { color: var(--tinta-3); }

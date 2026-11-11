@@ -15,51 +15,48 @@
     return new Crudo(out);
   }
 
-  // Iconos
+  // Iconos: nombre interno -> Material Symbols Outlined (https://fonts.google.com/icons)
   const ICONOS = {
-    panel: '<rect x="3.5" y="3.5" width="7" height="8" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="5" rx="1.5"/><rect x="13.5" y="11.5" width="7" height="9" rx="1.5"/><rect x="3.5" y="14.5" width="7" height="6" rx="1.5"/>',
-    activos: '<path d="M20.5 13.3 13.3 20.5a1.9 1.9 0 0 1-2.7 0L3.5 13.4V3.5h9.9l7.1 7.1a1.9 1.9 0 0 1 0 2.7z"/><circle cx="8" cy="8" r="1.4"/>',
-    prestamos: '<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
-    inventario: '<path d="M5 3.5h10.5L19 7v13.5H5z"/><path d="M9 9.5h6M9 13h6M9 16.5h3.5"/>',
-    notificaciones: '<path d="M6 16.5v-5a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
-    casa: '<path d="m3.5 11 8.5-7 8.5 7"/><path d="M6 9.5v11h12v-11"/><path d="M10 20.5v-6h4v6"/>',
-    caja: '<path d="M12 3.5 20 8v8l-8 4.5L4 16V8z"/><path d="m4 8 8 4.5L20 8M12 12.5v8"/>',
-    movimientos: '<path d="M7.5 20V4M7.5 4 4 7.5M7.5 4 11 7.5M16.5 4v16M16.5 20 13 16.5M16.5 20l3.5-3.5"/>',
-    asignaciones: '<path d="M9 4.5H6v16h12v-16h-3"/><rect x="9" y="3" width="6" height="3.5" rx="1"/><path d="m9 13.5 2 2 4-4"/>',
-    megafono: '<path d="M4 10v4l3.5.5L17 19V5L7.5 9.5z"/><path d="m8 15 1.3 5h2.4l-1.2-4.2M20 10v4"/>',
-    universidad: '<path d="M12 4.5 2.5 9.5l9.5 5 9.5-5z"/><path d="M6.5 12v4.5c0 1.1 2.5 2.5 5.5 2.5s5.5-1.4 5.5-2.5V12"/>',
-    menu: '<path d="M4 6.5h16M4 12h16M4 17.5h16"/>',
-    menuCerrar: '<path d="M4 6.5h16M10 12h10M4 17.5h16"/><path d="M6.5 9.5 4 12l2.5 2.5"/>',
-    sol: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/>',
-    luna: '<path d="M20 14.2A8 8 0 1 1 9.8 4a6.4 6.4 0 0 0 10.2 10.2z"/>',
-    abajo: '<path d="m6 9.5 6 6 6-6"/>',
-    reiniciar: '<path d="M4 12a8 8 0 1 0 2.6-5.9L4 8.5"/><path d="M4 4v4.5h4.5"/>',
-    enlace: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
-    mas: '<path d="M12 5v14M5 12h14"/>',
-    buscar: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
-    salir: '<path d="M14.5 4H19v16h-4.5M10 8l-4 4 4 4M6 12h10"/>',
-    cerrar: '<path d="M6 6l12 12M18 6 6 18"/>',
-    flecha: '<path d="M5 12h14M13 6l6 6-6 6"/>',
-    volver: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
-    reloj: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
-    check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
-    alerta: '<path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17.2v.1"/>',
-    editar: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
-    baja: '<path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13"/>',
-    filtro: '<path d="M4 5h16l-6 7.5V19l-4-2v-4.5z"/>',
-    usuario: '<circle cx="12" cy="8.5" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/>',
-    senal: '<path d="M5.6 15.5a7 7 0 0 1 12.8 0M8.7 15.5a3.5 3.5 0 0 1 6.6 0"/><circle cx="12" cy="17.5" r="1"/>',
-    devolver: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
-    llave: '<circle cx="8" cy="15" r="4"/><path d="m11 12 8.5-8.5M16 7l2.5 2.5M14 9l2 2"/>',
-    servidor: '<path d="M4 4.5h16v6H4zM4 13.5h16v6H4z"/><path d="M7.5 7.5h.01M7.5 16.5h.01"/>',
+    panel: 'space_dashboard',
+    activos: 'sell',
+    prestamos: 'sync_alt',
+    inventario: 'inventory',
+    notificaciones: 'notifications',
+    casa: 'home',
+    caja: 'package_2',
+    movimientos: 'swap_vert',
+    asignaciones: 'assignment_ind',
+    megafono: 'campaign',
+    universidad: 'school',
+    menu: 'menu',
+    menuCerrar: 'menu_open',
+    sol: 'light_mode',
+    luna: 'dark_mode',
+    abajo: 'expand_more',
+    reiniciar: 'restart_alt',
+    enlace: 'link',
+    mas: 'add',
+    buscar: 'search',
+    salir: 'logout',
+    cerrar: 'close',
+    flecha: 'arrow_forward',
+    volver: 'arrow_back',
+    reloj: 'schedule',
+    check: 'check_circle',
+    alerta: 'warning',
+    editar: 'edit',
+    baja: 'delete',
+    filtro: 'filter_alt',
+    usuario: 'person',
+    senal: 'sensors',
+    devolver: 'assignment_return',
+    llave: 'key',
+    servidor: 'dns',
+    logo: 'account_balance',
   };
   const icono = (nombre, clase = '') =>
-    crudo(`<svg class="icono ${clase}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${ICONOS[nombre] || ''}</svg>`);
-  const logo = () => crudo(`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" focusable="false">
-    <polygon points="12,1.5 22,7 22,17 12,22.5 2,17 2,7" stroke-width="1.5"/>
-    <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>
-    <path stroke-width="1.2" d="M12 9.5V6M14.2 10.5l3.3-2M14.2 13.5l3.3 2M12 14.5V18M9.8 13.5l-3.3 2M9.8 10.5l-3.3-2"/>
-  </svg>`);
+    crudo(`<span class="icono ${clase}" aria-hidden="true">${ICONOS[nombre] || 'help'}</span>`);
+  const logo = () => icono('logo');
 
   // Formato
   const aFecha = (iso) => (iso ? new Date(iso) : null);

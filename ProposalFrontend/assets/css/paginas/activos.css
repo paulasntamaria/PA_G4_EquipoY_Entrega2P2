@@ -25,10 +25,10 @@
 .registro-total { display: flex; align-items: baseline; gap: 12px; margin-left: auto; }
 .registro-total-etiqueta {
   font: 600 var(--t-xxs)/1.2 var(--f-texto);
-  letter-spacing: 0.09em; text-transform: uppercase; color: var(--tinta-2);
+  color: var(--tinta-2);
 }
 .registro-total-cifra {
-  font: 400 var(--t-lg)/1 var(--f-titulo);
+  font: 600 var(--t-lg)/1 var(--f-titulo);
   font-variant-numeric: tabular-nums; color: var(--tinta);
 }
 

@@ -55,7 +55,7 @@
   position: sticky; left: 0; z-index: 3;
   display: flex; align-items: flex-end; padding: 0 14px 8px;
   background: var(--hoja-2); border-right: 1px solid var(--regla-2);
-  font: 600 var(--t-xxs)/1.2 var(--f-texto); letter-spacing: 0.09em; text-transform: uppercase;
+  font: 600 var(--t-xs)/1.2 var(--f-texto);
   color: var(--tinta-2);
 }
 .cal-escala { position: relative; height: 48px; }

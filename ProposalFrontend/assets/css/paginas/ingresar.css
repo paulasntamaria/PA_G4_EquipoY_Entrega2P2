@@ -1,45 +1,38 @@
-/* Pantalla de ingreso (siempre oscura) */
+/* Pantalla de ingreso: panel verde sólido + formulario sobre papel */
 
 .ingreso {
   display: grid;
-  grid-template-columns: 55% 45%;
+  grid-template-columns: minmax(0, 46%) minmax(0, 54%);
   min-height: 100vh;
-  background: var(--superior);
+  background: var(--papel);
 }
 
-/* Panel de marca */
+/* Panel de marca: color de marca plano, textos a la izquierda (siempre claro sobre verde) */
 .ingreso-marca {
   position: sticky; top: 0; height: 100vh;
-  display: grid; place-items: center; padding: 48px;
-  background: var(--degradado-marca); color: #FFF;
+  display: grid; align-items: center; padding: 56px 64px;
+  background: var(--degradado-marca); color: #F3F1EA;
 }
-.ingreso-contenido { display: grid; justify-items: center; gap: 20px; text-align: center; }
-.ingreso-logo { display: flex; align-items: center; gap: 16px; }
-.ingreso-logo-icono {
-  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 18px;
-  background: rgb(255 255 255 / 0.1); border: 1px solid rgb(255 255 255 / 0.2);
+.ingreso-contenido { display: grid; justify-items: start; gap: 22px; max-width: 440px; text-align: left; }
+.ingreso-logo { display: flex; align-items: center; gap: 12px; }
+.ingreso-logo-icono.icono { font-size: 40px; color: #CFE3D6; }
+.ingreso-wordmark { font: 700 2.75rem/1 var(--f-titulo); letter-spacing: 0.03em; }
+.ingreso-lema { max-width: 36ch; font-size: 1.1875rem; line-height: 1.45; color: rgb(243 241 234 / 0.86); }
+.ingreso-insignias {
+  display: grid; gap: 12px; margin: 6px 0 0; padding: 22px 0 0; list-style: none;
+  border-top: 1px solid rgb(243 241 234 / 0.18);
 }
-.ingreso-logo-icono svg { width: 40px; height: 40px; }
-.ingreso-wordmark { font: 400 3.625rem/1 var(--f-titulo); letter-spacing: 4px; text-shadow: 0 2px 20px rgb(0 0 0 / 0.2); }
-.ingreso-lema { max-width: 40ch; font-size: 0.9375rem; line-height: 1.5; color: rgb(255 255 255 / 0.78); }
-.ingreso-insignias { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 8px 0 0; padding: 0; list-style: none; }
 .ingreso-insignias li {
-  display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 999px;
-  background: rgb(255 255 255 / 0.1); border: 1px solid rgb(255 255 255 / 0.2);
-  font-size: var(--t-sm); font-weight: 500; color: rgb(255 255 255 / 0.9);
-  animation: sube 0.4s ease-out backwards;
+  display: flex; align-items: center; gap: 12px;
+  font-size: var(--t-md); color: rgb(243 241 234 / 0.82);
 }
-.ingreso-insignias li:nth-child(1) { animation-delay: 0.2s; }
-.ingreso-insignias li:nth-child(2) { animation-delay: 0.32s; }
-.ingreso-insignias li:nth-child(3) { animation-delay: 0.44s; }
-.ingreso-insignias svg { width: 15px; height: 15px; }
-@keyframes sube { from { opacity: 0; transform: translateY(10px); } }
+.ingreso-insignias .icono { font-size: 22px; color: #CFE3D6; }
 
 /* Panel del formulario */
 .ingreso-lado { display: grid; align-content: center; justify-items: center; padding: 40px 48px; }
 .ingreso-hoja { display: grid; gap: 20px; width: 100%; max-width: 420px; }
 .ingreso-cabeza { display: grid; gap: 6px; }
-.ingreso-titulo { font: 400 2rem/1.15 var(--f-titulo); }
+.ingreso-titulo { font: 600 2rem/1.15 var(--f-titulo); }
 .ingreso-bajada { font-size: var(--t-md); color: var(--tinta-3); }
 .ingreso-aviso:empty { display: none; }
 .ingreso-form { display: grid; gap: var(--e-4); }
@@ -80,11 +73,10 @@
 /* Móvil */
 @media (max-width: 880px) {
   .ingreso { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
-  .ingreso-marca { position: static; height: auto; min-height: 200px; padding: 24px; }
+  .ingreso-marca { position: static; height: auto; padding: 28px 20px; }
   .ingreso-contenido { gap: 10px; }
-  .ingreso-logo-icono { width: 44px; height: 44px; border-radius: 12px; }
-  .ingreso-logo-icono svg { width: 28px; height: 28px; }
-  .ingreso-wordmark { font-size: 2.5rem; }
+  .ingreso-logo-icono.icono { font-size: 30px; }
+  .ingreso-wordmark { font-size: 2rem; }
   .ingreso-lema { font-size: var(--t-sm); }
   .ingreso-insignias { display: none; }
   .ingreso-lado { align-content: start; padding: 24px 20px 40px; }

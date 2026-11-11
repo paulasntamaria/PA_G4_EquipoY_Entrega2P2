@@ -36,7 +36,7 @@
   padding: 10px 0;
 }
 .ficha--renglones dd { text-align: right; }
-.ficha-cifra { font: 400 var(--t-xl)/1 var(--f-titulo); font-variant-numeric: tabular-nums; }
+.ficha-cifra { font: 600 var(--t-xl)/1 var(--f-titulo); font-variant-numeric: tabular-nums; }
 
 /* Préstamo vigente */
 .prestamo { overflow: hidden; }
@@ -49,7 +49,7 @@
 .prestamo-doc { font: 600 var(--t-xl)/1.1 var(--f-codigo); letter-spacing: 0.02em; overflow-wrap: anywhere; }
 .prestamo-ficha { margin: 6px 20px 0; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .prestamo-ficha > div { border-bottom: 0; border-top: 1px solid var(--regla); }
-.prestamo-plazo dd { font: 400 var(--t-lg)/1.2 var(--f-titulo); }
+.prestamo-plazo dd { font: 600 var(--t-lg)/1.2 var(--f-titulo); }
 .prestamo--vencido .prestamo-plazo dd { color: var(--peligro); }
 .dd-nota { display: block; margin-top: 2px; font-size: var(--t-xs); font-weight: 400; color: var(--tinta-3); }
 .prestamo-pie {
@@ -67,7 +67,7 @@
 .kardex .cronologia li { grid-template-columns: 86px 14px minmax(0, 1fr); }
 .kardex .cronologia time { display: grid; align-content: start; line-height: 1.4; }
 .kardex .cronologia time .hora { color: var(--tinta-3); opacity: 0.8; }
-.mov-tipo { display: block; font: 400 var(--t-md)/1.25 var(--f-titulo); }
+.mov-tipo { display: block; font: 600 var(--t-md)/1.25 var(--f-titulo); }
 .mov-doc { display: block; margin-top: 2px; font-size: var(--t-xs); color: var(--tinta-2); }
 .cronologia li[data-tipo="ALTA"] .hito::after { border-color: var(--ok); }
 .cronologia li[data-tipo="DEVOLUCION"] .hito::after { border-color: var(--ok); }
