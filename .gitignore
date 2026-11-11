@@ -10,6 +10,7 @@ ProposalFrontend/Eter-frontend-main.zip
 build/
 bin/
 out/
+!**/src/**/out/
 *.class
 *.jar
 !**/gradle/wrapper/gradle-wrapper.jar
