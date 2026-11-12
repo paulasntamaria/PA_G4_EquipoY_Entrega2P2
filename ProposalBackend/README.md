@@ -7,7 +7,9 @@ Cuatro microservicios Spring Boot (Java 21) integrados con Kafka:
 - `services/eter-inventario-service` — puerto 8089 — consumidor de ambos tópicos (kardex)
 - `services/eter-notificaciones-service` — puerto 8090 — consumidor de préstamos (bandeja)
 
-Infraestructura en `infrastructure/docker-compose.yml`: PostgreSQL 16 (5433), Kafka 3.9 (9092), Redis 7.4 (6379, idempotencia de consumidores) y Kafka UI (8092). El mismo compose levanta también los 4 microservicios:
+Delante de ellos, `services/eter-graphql-gateway` (puerto 4000) es el API Gateway GraphQL, también en Spring Boot (Spring for GraphQL): el frontend solo habla con él y él traduce cada operación a las APIs REST de los 4 servicios.
+
+Infraestructura en `infrastructure/docker-compose.yml`: PostgreSQL 16 (5433), Kafka 3.9 (9092), Redis 7.4 (6379, idempotencia de consumidores) y Kafka UI (8092). El mismo compose levanta también los 4 microservicios y el gateway:
 
 ```cmd
 cd infrastructure

@@ -116,7 +116,7 @@
         body: JSON.stringify({ query, variables }),
       });
     } catch {
-      throw new ApiError('SIN_CONEXION', `No hay respuesta del gateway en ${sesion.gateway}. Revisa que esté corriendo (npm start o docker compose up).`);
+      throw new ApiError('SIN_CONEXION', `No hay respuesta del gateway en ${sesion.gateway}. Revisa que esté corriendo (docker compose up o gradlew bootRun).`);
     }
     let cuerpo = null;
     try { cuerpo = await r.json(); } catch { /* cuerpo no JSON */ }

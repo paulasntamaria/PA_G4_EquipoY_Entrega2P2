@@ -17,6 +17,7 @@
 | `eter-prestamos-service` | 8088 | Préstamos, devoluciones, vigía de vencidos | **Productor** (`eter.prestamos.eventos.v1`) | `prestamos` |
 | `eter-inventario-service` | 8089 | Asignaciones y kardex de movimientos | **Consumidor** de ambos tópicos (grupo `eter-inventario-v1`) | `inventario` |
 | `eter-notificaciones-service` | 8090 | Bandeja de notificaciones del usuario | **Consumidor** de préstamos (grupo `eter-notificaciones-v2`) | `notificaciones` |
+| `eter-graphql-gateway` | 4000 | API Gateway GraphQL (Spring Boot + Spring for GraphQL): único punto de entrada del frontend; traduce GraphQL a las APIs REST de los 4 servicios | — | — (sin base de datos) |
 
 | Infraestructura | Puerto local | Para qué |
 |---|---:|---|
@@ -68,10 +69,11 @@ docker compose ps
 
 La primera vez tarda varios minutos porque compila los 4 servicios dentro de Docker. Las siguientes veces basta con `docker compose up -d`.
 
-Debe ver 8 contenedores `Up`. Los 4 microservicios, postgres, kafka y redis aparecen como `(healthy)`, y `eter-kafka-init` como `Exited (0)` porque solo crea los tópicos y termina. Los servicios tardan entre 30 y 60 s en pasar a `healthy`.
+Debe ver 9 contenedores `Up`. Los 4 microservicios, el gateway, postgres, kafka y redis aparecen como `(healthy)`, y `eter-kafka-init` como `Exited (0)` porque solo crea los tópicos y termina. Los servicios tardan entre 30 y 60 s en pasar a `healthy`; el gateway arranca cuando los 4 microservicios ya lo están.
 
 ```text
-NAME                  IMAGE                                    STATUS
+NAME                   IMAGE                                    STATUS
+eter-graphql-gateway   eter/graphql-gateway:entrega2p2          Up (healthy)
 eter-activos          eter/activos-service:entrega2p2          Up (healthy)
 eter-prestamos        eter/prestamos-service:entrega2p2        Up (healthy)
 eter-inventario       eter/inventario-service:entrega2p2       Up (healthy)
@@ -98,13 +100,14 @@ cd infrastructure
 docker compose up -d postgres kafka kafka-init redis kafka-ui
 ```
 
-Luego abra **cuatro terminales**, una por servicio:
+Luego abra **cinco terminales**, una por servicio (el gateway al final):
 
 ```cmd
 cd services\eter-activos-service        &  gradlew.bat bootRun
 cd services\eter-prestamos-service      &  gradlew.bat bootRun
 cd services\eter-inventario-service     &  gradlew.bat bootRun
 cd services\eter-notificaciones-service &  gradlew.bat bootRun
+cd services\eter-graphql-gateway        &  gradlew.bat bootRun
 ```
 
 Los valores por defecto de cada `application.yml` ya apuntan a `localhost` (5433, 9092 y 6379). **No mezcle las dos opciones**: si los contenedores de los servicios están arriba, los puertos 8087 a 8090 ya están ocupados. Para pasar de A a B, ejecute `docker compose stop activos prestamos inventario notificaciones`.
@@ -161,7 +164,7 @@ El script usa una placa nueva en cada corrida (`AF-DEMO-MMddHHmmss`), así que s
 
 | Evidencia | Qué demuestra | Criterio de la rúbrica |
 |---|---|---|
-| 1 | `docker compose ps` con los 8 contenedores | Docker Compose |
+| 1 | `docker compose ps` con todos los contenedores | Docker Compose |
 | 2 | Tópicos y particiones | Diseño de tópicos |
 | 3 | Alta de activo → `ACTIVO_CREADO` → movimiento ALTA | Productor/consumidor, integración |
 | 4 | Préstamo → `PRESTAMO_CREADO` → movimiento PRESTAMO **y** notificación (2 grupos) | Productores y consumidores, fan-out |

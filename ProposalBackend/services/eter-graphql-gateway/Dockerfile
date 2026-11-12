@@ -1,9 +1,22 @@
-FROM node:22-alpine
+# Compila con Gradle y ejecuta con un JRE liviano (igual que los microservicios).
+
+# Compilacion
+FROM gradle:8.14.3-jdk21 AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --omit=dev
+# Dependencias primero para aprovechar la cache.
+COPY build.gradle settings.gradle ./
+RUN gradle dependencies --no-daemon -q > /dev/null 2>&1 || true
 COPY src ./src
-ENV NODE_ENV=production PORT=4000
+RUN gradle bootJar -x test --no-daemon -q \
+ && find build/libs -name "*-plain.jar" -delete \
+ && mv build/libs/*.jar app.jar
+
+# Ejecucion
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+RUN addgroup -S eter && adduser -S eter -G eter
+COPY --from=build /app/app.jar app.jar
+USER eter
+ENV JAVA_TOOL_OPTIONS="-Xms96m -Xmx256m -Duser.timezone=America/Bogota"
 EXPOSE 4000
-HEALTHCHECK --interval=10s --timeout=3s CMD wget -qO- "http://localhost:4000/health" || exit 1
-CMD ["node", "src/start.js"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

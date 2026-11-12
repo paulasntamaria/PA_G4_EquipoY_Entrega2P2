@@ -9,7 +9,7 @@ llama directo a los microservicios.
 No necesita build ni `npm install`.
 
 - **Doble clic en `ingresar.html`.** Funciona desde `file://`: los scripts son clásicos y el
-  gateway acepta cualquier origen (CORS por defecto de GraphQL Yoga).
+  gateway acepta cualquier origen (`spring.graphql.cors` en su `application.yml`).
 - O con un servidor estático, si lo prefieres:
   ```bash
   cd ProposalFrontend

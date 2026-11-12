@@ -239,7 +239,7 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
   <header class="top">
     <p class="eyebrow">ETER · Entrega 2P2 · eter-graphql-gateway :4000</p>
     <h1>Simulador del Gateway ETER</h1>
-    <p class="lede">Elige una operación GraphQL y mira qué componentes toca, en qué orden y qué responde cada uno. Cada paso sigue el código del gateway y cita el archivo y la línea. Las consultas no pasan por Kafka: Kafka entra solo cuando algo se escribe, después de responder. Pruébalo con «Crear un préstamo», «Dar de baja un activo» o «Suscripción a avisos» y mira los tópicos al fondo del diagrama. Los datos son de ejemplo y no se hace ninguna llamada real.</p>
+    <p class="lede">Elige una operación GraphQL y mira qué componentes toca, en qué orden y qué responde cada uno. Cada paso sigue el código del gateway (Spring Boot) y cita la clase y el método. Las consultas no pasan por Kafka: Kafka entra solo cuando algo se escribe, después de responder. Pruébalo con «Crear un préstamo», «Dar de baja un activo» o «Suscripción a avisos» y mira los tópicos al fondo del diagrama. Los datos son de ejemplo y no se hace ninguna llamada real.</p>
   </header>
 
   <main>
@@ -284,7 +284,7 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
       <div class="panel stage">
         <figure class="fig">
           <div class="canvas">
-            <svg id="diagram" viewBox="0 0 1120 600" role="img" aria-label="Diagrama de componentes: el frontend llama al gateway GraphQL (server.js, auth.js, resolvers.js, http.js), que llama por REST a los microservicios de préstamos, activos, inventario y notificaciones. Préstamos e inventario consultan a activos por REST. Préstamos y activos publican eventos en Kafka que consumen inventario y notificaciones.">
+            <svg id="diagram" viewBox="0 0 1120 600" role="img" aria-label="Diagrama de componentes: el frontend llama al gateway GraphQL en Spring Boot (Spring for GraphQL, AutenticacionInterceptor, controladores GraphQL, MicroservicioRestClient), que llama por REST a los microservicios de préstamos, activos, inventario y notificaciones. Préstamos e inventario consultan a activos por REST. Préstamos y activos publican eventos en Kafka que consumen inventario y notificaciones.">
               <defs>
                 <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto">
                   <path d="M0 1 L9 5 L0 9 z" fill="currentColor"/>
@@ -354,19 +354,19 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
               <!-- Gateway por dentro -->
               <g class="node" id="n-srv" style="--nc: var(--c-gw)">
                 <rect class="box" x="40" y="168" width="230" height="76" rx="8"/>
-                <text class="nt" x="56" y="192">server.js</text>
-                <text class="ns" x="56" y="211">GraphQL Yoga · graphql-ws</text>
-                <text class="ns" x="56" y="228">valida contra schema.graphql</text>
+                <text class="nt" x="56" y="192">Spring for GraphQL</text>
+                <text class="ns" x="56" y="211">HTTP y WebSocket · graphql-transport-ws</text>
+                <text class="ns" x="56" y="228">valida contra schema.graphqls</text>
               </g>
               <g class="node" id="n-auth" style="--nc: var(--c-gw)">
                 <rect class="box" x="310" y="168" width="230" height="76" rx="8"/>
-                <text class="nt" x="326" y="192">auth.js</text>
-                <text class="ns" x="326" y="211">jwt.verify HS256</text>
-                <text class="ns" x="326" y="228">nitUniv y roles salen del token</text>
+                <text class="nt" x="326" y="192">AutenticacionInterceptor</text>
+                <text class="ns" x="326" y="211">JwtVerificador · HS256 (jjwt)</text>
+                <text class="ns" x="326" y="228">usuario del token → GraphQLContext</text>
               </g>
               <g class="node" id="n-res" style="--nc: var(--c-gw)">
                 <rect class="box" x="580" y="168" width="230" height="76" rx="8"/>
-                <text class="nt" x="596" y="191">resolvers.js</text>
+                <text class="nt" x="596" y="191">*GraphqlController</text>
                 <text class="ns" x="596" y="208">decide a qué servicio llamar</text>
                 <g class="chips" data-x="596" data-y="216">
                   <g class="chip" id="chip-memo"><rect/><text id="memo-t">memo · 0 aciertos</text></g>
@@ -374,8 +374,8 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
               </g>
               <g class="node" id="n-http" style="--nc: var(--c-gw)">
                 <rect class="box" x="850" y="168" width="230" height="76" rx="8"/>
-                <text class="nt" x="866" y="192">http.js</text>
-                <text class="ns" x="866" y="211">llamar(): fetch + JWT + timeout</text>
+                <text class="nt" x="866" y="192">MicroservicioRestClient</text>
+                <text class="ns" x="866" y="211">RestClient + JWT + timeout</text>
                 <text class="ns" x="866" y="228">4xx/5xx → código GraphQL</text>
               </g>
 
@@ -481,7 +481,7 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
       </div>
     </section>
 
-    <p class="foot">Construido a partir de services/eter-graphql-gateway/src (server.js, auth.js, resolvers.js, http.js, schema.graphql), docs/EVENTOS_KAFKA.md, infrastructure/docker-compose.yml y la configuración de seguridad de los microservicios. Los tiempos están comprimidos: el outbox, el vigía y el sondeo de la suscripción tardan segundos de verdad.</p>
+    <p class="foot">Construido a partir de services/eter-graphql-gateway (Spring Boot: AutenticacionInterceptor, JwtVerificador, ContextoPeticion, los *GraphqlController, los clientes REST, GatewayException y schema.graphqls), docs/EVENTOS_KAFKA.md, infrastructure/docker-compose.yml y la configuración de seguridad de los microservicios. Los tiempos están comprimidos: el outbox, el vigía y el sondeo de la suscripción tardan segundos de verdad.</p>
   </main>
 </div>
 
@@ -498,8 +498,8 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
   const HOST = { act: 'activos:8087', pre: 'prestamos:8088', inv: 'inventario:8089', not: 'notificaciones:8090' };
   const NOMBRE = { act: 'activos', pre: 'prestamos', inv: 'inventario', not: 'notificaciones' };
   const WHO = {
-    fe: ['frontend', '--ink'], srv: ['server.js', '--c-gw'], auth: ['auth.js', '--c-gw'],
-    res: ['resolvers.js', '--c-gw'], http: ['http.js', '--c-gw'],
+    fe: ['frontend', '--ink'], srv: ['Spring for GraphQL', '--c-gw'], auth: ['AutenticacionInterceptor', '--c-gw'],
+    res: ['GraphqlController', '--c-gw'], http: ['MicroservicioRestClient', '--c-gw'],
     act: ['activos', '--c-act'], pre: ['prestamos', '--c-pre'], inv: ['inventario', '--c-inv'],
     not: ['notificaciones', '--c-not'], kafka: ['Kafka', '--c-kafka'], err: ['error', '--err'],
   };
@@ -656,7 +656,7 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
   // Piezas comunes
   const errSvc = (svc, path, locations = LOC) => ({
     message: `El servicio de ${svc} no responde.`, locations, path,
-    extensions: { code: 'SERVICE_UNAVAILABLE', servicio: svc, causa: 'TypeError' },
+    extensions: { code: 'SERVICE_UNAVAILABLE', servicio: svc, classification: 'DataFetchingException' },
   });
   const wsNext = (n) => ({ id: '1', type: 'next', payload: { data: { notificacionRecibida: n } } });
 
@@ -666,27 +666,27 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
     return [
       {
         who: 'fe',
-        t: ws ? 'El frontend abre un WebSocket (protocolo graphql-ws) y manda el JWT en connectionParams.'
+        t: ws ? 'El frontend abre un WebSocket (protocolo graphql-transport-ws) y manda el JWT en el payload de connection_init.'
           : 'El frontend manda la operación en un POST a /graphql, con el JWT en el header Authorization.',
-        code: ws ? `ws://localhost:4000/graphql\nconnection_init  ${sinToken ? '(sin Authorization)' : `Authorization: "Bearer ${JWT}"`}`
-          : `POST http://localhost:4000/graphql\n${sinToken ? '(sin header Authorization)' : `Authorization: Bearer ${JWT}`}`,
-        ref: ws ? 'server.js:30' : 'server.js:29',
+        code: ws ? `ws://127.0.0.1:4000/graphql\nconnection_init  ${sinToken ? '(sin Authorization)' : `Authorization: "Bearer ${JWT}"`}`
+          : `POST http://127.0.0.1:4000/graphql\n${sinToken ? '(sin header Authorization)' : `Authorization: Bearer ${JWT}`}`,
+        ref: ws ? 'application.yml · spring.graphql.websocket' : 'application.yml · /graphql',
         act: () => fly(['e-fe-srv'], { tag: ws ? 'WS' : 'POST', who: 'fe' }),
       },
       {
         who: 'srv',
-        t: ws ? 'onSubscribe arma el contexto con esos connectionParams y valida la suscripción contra schema.graphql.'
-          : 'GraphQL Yoga parsea la operación y la valida contra schema.graphql. Un campo que no existe se rechazaría aquí, sin llamar a ningún servicio.',
-        ref: ws ? 'server.js:36' : 'server.js:12',
+        t: ws ? 'handleConnectionInitialization guarda el Authorization del connection_init en la sesión WebSocket y responde connection_ack. Al llegar el subscribe, Spring for GraphQL valida la suscripción contra schema.graphqls.'
+          : 'Spring for GraphQL parsea la operación y la valida contra schema.graphqls. Un campo que no existe se rechazaría aquí, sin llamar a ningún servicio.',
+        ref: ws ? 'AutenticacionInterceptor.handleConnectionInitialization' : 'schema.graphqls',
         act: () => hold('n-srv', 750),
       },
       {
         who: 'auth',
-        t: sinToken ? 'autenticar no encuentra "Bearer …" (o la firma no cuadra) y devuelve null. El gateway no corta aquí: deja ctx.usuario = null y sigue.'
-          : c.token === 'admin' ? 'jwt.verify comprueba la firma HS256 con ETER_JWT_SECRET, el mismo secreto de los microservicios. El usuario queda en el contexto.'
+        t: sinToken ? 'JwtVerificador.autenticar no encuentra "Bearer …" (o la firma no cuadra) y devuelve null. El interceptor no corta aquí: deja el GraphQLContext sin usuario y sigue.'
+          : c.token === 'admin' ? 'JwtVerificador comprueba la firma HS256 con ETER_JWT_SECRET, el mismo secreto de los microservicios. AutenticacionInterceptor deja el usuario en el GraphQLContext.'
           : 'La firma es válida y el token no trae roles. El gateway no revisa roles: esa regla la aplica cada microservicio.',
-        code: sinToken ? 'ctx.usuario = null' : `ctx.usuario = { email: "79123456@eter.edu.co", nitUniv: "${NIT}", roles: ${roles} }`,
-        ref: 'auth.js:10',
+        code: sinToken ? 'GraphQLContext: sin "eter.usuario"' : `eter.usuario = UsuarioAutenticado[email=79123456@eter.edu.co, nitUniv=${NIT}, roles=${roles.replace(/"/g, '')}]`,
+        ref: 'JwtVerificador.autenticar',
         act: async () => { await fly(['e-srv-auth'], { tag: 'JWT', who: 'srv' }); await hold('n-auth', 750); },
       },
     ];
@@ -702,9 +702,9 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
     return {
       who: 'fe',
       t: t ?? (cuerpo.errors
-        ? 'Yoga responde HTTP 200 con data y errors: GraphQL informa el fallo por campo, no con el status HTTP.'
-        : 'Yoga serializa el resultado y lo devuelve al frontend.'),
-      pill: String(status), ref: 'server.js:12',
+        ? 'Spring for GraphQL responde HTTP 200 con data y errors: GraphQL informa el fallo por campo, no con el status HTTP. GatewayExceptionResolver pone el código en extensions.'
+        : 'Spring for GraphQL serializa el resultado y lo devuelve al frontend.'),
+      pill: String(status), ref: cuerpo.errors ? 'GatewayExceptionResolver' : 'Spring for GraphQL',
       act: async () => {
         await fly(['e-res-srv', 'r-srv-up', ['e-fe-srv', true]], { tag: String(status), who: mala ? 'err' : 'srv', kind: mala ? 'err' : 'res' });
         mostrar(cuerpo, { pill: `HTTP ${status}`, txt: cuerpo.errors ? 'respuesta con errors' : 'respuesta a la operación' }, mala);
@@ -715,9 +715,9 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
 
   function rechazo(campo, data = null) {
     return [
-      { who: 'res', t: 'exigirUsuario no encuentra ctx.usuario y lanza UNAUTHENTICATED. Ningún microservicio recibe la petición.', ref: 'auth.js:26', pill: '401', act: () => hold('n-res', 750, 'hit') },
-      respuesta({ errors: [{ message: 'Token ausente o invalido.', locations: LOC, path: [campo], extensions: { code: 'UNAUTHENTICATED' } }], data }, 401,
-        'Yoga toma el status de extensions.http del error y responde 401.'),
+      { who: 'res', t: 'ContextoPeticion.usuario() no encuentra el usuario en el GraphQLContext y lanza GatewayException UNAUTHENTICATED. Ningún microservicio recibe la petición.', ref: 'ContextoPeticion.usuario', pill: 'error', act: () => hold('n-res', 750, 'hit') },
+      respuesta({ errors: [{ message: 'Token ausente o invalido.', locations: LOC, path: [campo], extensions: { code: 'UNAUTHENTICATED', classification: 'DataFetchingException' } }], data }, 200,
+        'Spring for GraphQL responde HTTP 200 con el error en errors (extensions.code UNAUTHENTICATED). El frontend lee el código, cierra la sesión y vuelve a la pantalla de ingreso.'),
     ];
   }
 
@@ -743,26 +743,26 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
       op: 'query Inicio {\n  resumen {\n    totalActivos\n    prestamosVigentes\n    prestamosVencidos\n    notificacionesNoLeidas\n  }\n}',
       plan(c) {
         const s = entrada(c);
-        if (c.token === 'none') return [...s, enResolvers('Query.resumen llama a resolverNit para sacar el NIT del token.', 'resolvers.js:159'), ...rechazo('resumen')];
+        if (c.token === 'none') return [...s, enResolvers('UsuarioGraphqlController.resumen pide ContextoPeticion.nit() para sacar el NIT del token.', 'UsuarioGraphqlController.resumen'), ...rechazo('resumen')];
         const svcs = ['act', 'pre', 'not'];
         const caido = svcs.find((x) => c.down.has(x));
-        s.push(enResolvers('Query.resumen saca el nitUniv del token con resolverNit y lanza tres llamadas a la vez con Promise.all.', 'resolvers.js:158'));
+        s.push(enResolvers('UsuarioGraphqlController.resumen saca el nitUniv del token con ContextoPeticion.nit() y lanza tres CompletableFuture a la vez, cada uno en un hilo virtual.', 'UsuarioGraphqlController.resumen'));
         s.push({
           who: 'http',
-          t: 'llamar() hace los tres fetch en paralelo, cada uno con el mismo JWT. Cada servicio valida el token y el tenant y consulta su propio esquema en PostgreSQL.',
+          t: 'ActivosClient, PrestamosClient y NotificacionesClient hacen las tres llamadas en paralelo con RestClient, cada una con el mismo JWT. Cada servicio valida el token y el tenant y consulta su propio esquema en PostgreSQL.',
           code: [
             `GET ${HOST.act}/api/v1/activos/activos-fijos?nitUniv=${NIT}`,
             `GET ${HOST.pre}/api/v1/activos/prestamos?nitUniv=${NIT}&estado=VIGENTE`,
             `GET ${HOST.not}/api/v1/notificaciones?page=0&size=1&soloNoLeidas=false`,
           ].join('\n'),
-          pill: caido ? '✕' : '200 ×3', ref: 'http.js:14',
+          pill: caido ? '✕' : '200 ×3', ref: 'MicroservicioRestClient.get',
           act: () => Promise.all(svcs.map((x, i) => rest(x, { caido: c.down.has(x), retraso: i * 90 }))),
         });
         if (caido) {
-          s.push({ who: 'res', t: `El fetch a ${NOMBRE[caido]} falla, http.js lo convierte en SERVICE_UNAVAILABLE y Promise.all se rechaza entero. resumen es Resumen! (no admite null), así que data queda en null aunque los otros servicios sí respondieron.`, ref: 'http.js:33', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push({ who: 'res', t: `La llamada a ${NOMBRE[caido]} falla: MicroservicioRestClient lanza GatewayException SERVICE_UNAVAILABLE y el join() de ese CompletableFuture la propaga, así que resumen falla entero. resumen es Resumen! (no admite null), así que data queda en null aunque los otros servicios sí respondieron.`, ref: 'GatewayException.noDisponible', pill: 'error', act: () => hold('n-res', 800, 'hit') });
           s.push(respuesta({ errors: [errSvc(NOMBRE[caido], ['resumen'])], data: null }));
         } else {
-          s.push({ who: 'res', t: 'Con las tres respuestas, resolvers.js cuenta los activos, filtra los préstamos vencidos y toma noLeidas de la página de notificaciones.', ref: 'resolvers.js:165', act: () => hold('n-res', 800) });
+          s.push({ who: 'res', t: 'Con las tres respuestas, resumen cuenta los activos por estado, filtra los préstamos vencidos y toma noLeidas de la página de notificaciones.', ref: 'UsuarioGraphqlController.resumen', act: () => hold('n-res', 800) });
           s.push(respuesta({ data: { resumen: { totalActivos: 12, prestamosVigentes: 3, prestamosVencidos: 1, notificacionesNoLeidas: 4 } } }));
         }
         return s;
@@ -775,22 +775,22 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
       op: 'query DetalleActivo {\n  activo(placaInventario: "AF-2026-0001") {\n    descripcion\n    estado\n    prestamoVigente { idPrestamo numDocumento fechaDevolucionPactada vencido }\n    movimientos(tipo: PRESTAMO) { fechaMovimiento numDocumento }\n  }\n}',
       plan(c) {
         const s = entrada(c);
-        if (c.token === 'none') return [...s, enResolvers('Query.activo llama a resolverNit para sacar el NIT del token.', 'resolvers.js:183'), ...rechazo('activo', { activo: null })];
-        s.push(enResolvers('Query.activo llama a obtenerActivo. memo guarda la promesa en ctx.cache con la clave activo:900123456-1:AF-2026-0001, para que otro campo de la misma petición la reutilice.', 'resolvers.js:181'));
+        if (c.token === 'none') return [...s, enResolvers('ActivoGraphqlController.activo pide ContextoPeticion.nit() para sacar el NIT del token.', 'ActivoGraphqlController.activo'), ...rechazo('activo', { activo: null })];
+        s.push(enResolvers('ActivoGraphqlController.activo llama a ActivosClient.obtener. ContextoPeticion.memo guarda el activo en la caché del GraphQLContext con la clave activo:900123456-1:AF-2026-0001, para que otro campo de la misma petición lo reutilice.', 'ActivosClient.obtener'));
         const actC = c.down.has('act');
-        s.push({ who: 'act', t: 'GET del activo por NIT y placa.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0001`, pill: actC ? '✕' : '200', ref: 'resolvers.js:34', act: () => rest('act', { caido: actC }) });
+        s.push({ who: 'act', t: 'GET del activo por NIT y placa.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0001`, pill: actC ? '✕' : '200', ref: 'ActivosClient.obtener', act: () => rest('act', { caido: actC }) });
         if (actC) {
-          s.push({ who: 'res', t: 'Query.activo solo convierte NOT_FOUND en null. SERVICE_UNAVAILABLE sube como error: activo queda en null y prestamoVigente y movimientos ni se consultan.', ref: 'resolvers.js:184', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push({ who: 'res', t: 'ActivoGraphqlController.activo solo convierte NOT_FOUND en null. SERVICE_UNAVAILABLE sube como error: activo queda en null y prestamoVigente y movimientos ni se consultan.', ref: 'ActivoGraphqlController.activo', pill: 'error', act: () => hold('n-res', 800, 'hit') });
           s.push(respuesta({ errors: [errSvc('activos', ['activo'])], data: { activo: null } }));
           return s;
         }
         const preC = c.down.has('pre'), invC = c.down.has('inv');
-        s.push({ who: 'res', t: 'descripcion y estado ya llegaron con el activo. prestamoVigente y movimientos viven en otros servicios, así que GraphQL ejecuta sus resolvers, los dos a la vez. Notificaciones no recibe nada: la query no pidió ningún campo suyo.', ref: 'resolvers.js:298', act: async () => { $('#n-not').classList.add('skip'); await hold('n-res', 700); } });
+        s.push({ who: 'res', t: 'descripcion y estado ya llegaron con el activo. prestamoVigente y movimientos viven en otros servicios, así que GraphQL ejecuta sus @SchemaMapping de ActivoGraphqlController, los dos a la vez (Spring los corre en hilos virtuales). Notificaciones no recibe nada: la query no pidió ningún campo suyo.', ref: 'ActivoGraphqlController · @SchemaMapping', act: async () => { $('#n-not').classList.add('skip'); await hold('n-res', 700); } });
         s.push({
           who: 'http',
           t: 'ActivoFijo.prestamoVigente pide a préstamos el préstamo VIGENTE de esa placa y ActivoFijo.movimientos pide a inventario los movimientos tipo PRESTAMO.',
           code: `GET ${HOST.pre}/api/v1/activos/prestamos?nitUniv=${NIT}&placaInventario=AF-2026-0001&estado=VIGENTE\nGET ${HOST.inv}/api/v1/activos/movimientos-inventario?nitUniv=${NIT}&placaInventario=AF-2026-0001&tipoMovimiento=PRESTAMO`,
-          pill: preC || invC ? '✕' : '200 ×2', ref: 'resolvers.js:304',
+          pill: preC || invC ? '✕' : '200 ×2', ref: 'ActivoGraphqlController.prestamoVigente',
           act: async () => { await Promise.all([rest('pre', { caido: preC }), rest('inv', { caido: invC, retraso: 90 })]); $('#n-not').classList.remove('skip'); },
         });
         const activoOk = {
@@ -805,10 +805,10 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
         if (preC) errores.push(errSvc('prestamos', ['activo', 'prestamoVigente'], [{ line: 5, column: 5 }]));
         if (invC) errores.push(errSvc('inventario', ['activo', 'movimientos'], [{ line: 6, column: 5 }]));
         if (invC) {
-          s.push({ who: 'res', t: 'movimientos es [Movimiento!]! (no admite null). Su error sube al campo padre y el activo completo queda en null, aunque activos sí respondió.', ref: 'schema.graphql:24', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push({ who: 'res', t: 'movimientos es [Movimiento!]! (no admite null). Su error sube al campo padre y el activo completo queda en null, aunque activos sí respondió.', ref: 'schema.graphqls:24', pill: 'error', act: () => hold('n-res', 800, 'hit') });
           s.push(respuesta({ errors: errores, data: { activo: null } }));
         } else if (preC) {
-          s.push({ who: 'res', t: 'prestamoVigente admite null, así que solo ese campo falla: queda en null con su error y el resto del activo llega completo.', ref: 'schema.graphql:26', pill: 'parcial', act: () => hold('n-res', 800) });
+          s.push({ who: 'res', t: 'prestamoVigente admite null, así que solo ese campo falla: queda en null con su error y el resto del activo llega completo.', ref: 'schema.graphqls:26', pill: 'parcial', act: () => hold('n-res', 800) });
           s.push(respuesta({ errors: errores, data: { activo: { ...activoOk, prestamoVigente: null } } }));
         } else {
           s.push(respuesta({ data: { activo: activoOk } }));
@@ -823,29 +823,29 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
       op: 'query PrestamosConActivo {\n  prestamos {\n    idPrestamo\n    estado\n    activo { descripcion }\n  }\n}',
       plan(c) {
         const s = entrada(c);
-        if (c.token === 'none') return [...s, enResolvers('Query.prestamos llama a resolverNit para sacar el NIT del token.', 'resolvers.js:203'), ...rechazo('prestamos')];
+        if (c.token === 'none') return [...s, enResolvers('PrestamoGraphqlController.prestamos pide ContextoPeticion.nit() para sacar el NIT del token.', 'PrestamoGraphqlController.prestamos'), ...rechazo('prestamos')];
         const preC = c.down.has('pre'), actC = c.down.has('act');
-        s.push(enResolvers('Query.prestamos pide la lista completa de préstamos de la universidad.', 'resolvers.js:202'));
-        s.push({ who: 'pre', t: 'GET de los préstamos del NIT que trae el token.', code: `GET ${HOST.pre}/api/v1/activos/prestamos?nitUniv=${NIT}`, pill: preC ? '✕' : '200', ref: 'resolvers.js:46', act: () => rest('pre', { caido: preC }) });
+        s.push(enResolvers('PrestamoGraphqlController.prestamos pide la lista completa de préstamos de la universidad.', 'PrestamoGraphqlController.prestamos'));
+        s.push({ who: 'pre', t: 'GET de los préstamos del NIT que trae el token.', code: `GET ${HOST.pre}/api/v1/activos/prestamos?nitUniv=${NIT}`, pill: preC ? '✕' : '200', ref: 'PrestamosClient.listar', act: () => rest('pre', { caido: preC }) });
         if (preC) {
-          s.push({ who: 'res', t: 'prestamos es [Prestamo!]! en la raíz y no admite null: data queda en null.', ref: 'schema.graphql:106', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push({ who: 'res', t: 'prestamos es [Prestamo!]! en la raíz y no admite null: data queda en null.', ref: 'schema.graphqls:106', pill: 'error', act: () => hold('n-res', 800, 'hit') });
           s.push(respuesta({ errors: [errSvc('prestamos', ['prestamos'])], data: null }));
           return s;
         }
         s.push({
           who: 'res',
-          t: 'Llegan 5 préstamos de 3 activos distintos. GraphQL ejecuta Prestamo.activo 5 veces, pero memo solo deja salir 3 fetch: los 2 préstamos que repiten placa reciben la promesa que ya está en ctx.cache. Sin memo serían 1 + 5 = 6 llamadas; con memo son 1 + 3 = 4.',
-          ref: 'resolvers.js:16', pill: 'memo ×2',
+          t: 'Llegan 5 préstamos de 3 activos distintos. GraphQL ejecuta PrestamoGraphqlController.activo 5 veces, pero ContextoPeticion.memo comparte la consulta de cada placa dentro de la petición (clave activo:nit:placa): los 2 préstamos que repiten placa reutilizan la del primero en vez de salir a activos. Sin memo serían 1 + 5 = 6 llamadas; con memo son 1 + 3 = 4.',
+          ref: 'ContextoPeticion.memo', pill: 'memo ×2',
           act: async () => { await hold('n-res', 500); memo(1); await hold('chip-memo', 500, 'flash'); memo(2); await hold('chip-memo', 500, 'flash'); },
         });
         s.push({
           who: 'act', t: 'Tres GET a activos, uno por placa distinta, en paralelo.',
           code: ['AF-2026-0001', 'AF-2026-0003', 'AF-2026-0004'].map((p) => `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/${p}`).join('\n'),
-          pill: actC ? '✕' : '200 ×3', ref: 'resolvers.js:327',
+          pill: actC ? '✕' : '200 ×3', ref: 'ActivosClient.relacionado',
           act: () => Promise.all([0, 1, 2].map((i) => rest('act', { caido: actC, retraso: i * 220 }))),
         });
         if (actC) {
-          s.push({ who: 'res', t: 'activoRelacionado solo perdona NOT_FOUND. Cada Prestamo.activo (admite null) queda en null con su error, pero la lista de préstamos llega igual.', ref: 'resolvers.js:331', pill: 'parcial', act: () => hold('n-res', 800, 'hit') });
+          s.push({ who: 'res', t: 'ActivosClient.relacionado solo perdona NOT_FOUND. Cada Prestamo.activo (admite null) queda en null con su error, pero la lista de préstamos llega igual.', ref: 'ActivosClient.relacionado', pill: 'parcial', act: () => hold('n-res', 800, 'hit') });
           s.push(respuesta({
             errors: PRESTAMOS.map((_, i) => errSvc('activos', ['prestamos', i, 'activo'], [{ line: 5, column: 5 }])),
             data: { prestamos: PRESTAMOS.map((p) => ({ ...p, activo: null })) },
@@ -863,25 +863,25 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
       op: 'mutation NuevoPrestamo {\n  crearPrestamo(input: {\n    placaInventario: "AF-2026-0002"\n    numDocumento: "79123456"\n    fechaSalida: "2026-10-28T08:00:00"\n    fechaDevolucionPactada: "2026-11-04T18:00:00"\n  }) {\n    idPrestamo\n    estado\n    activo { descripcion }\n  }\n}',
       plan(c) {
         const s = entrada(c);
-        if (c.token === 'none') return [...s, enResolvers('Mutation.crearPrestamo llama a resolverNit para sacar el NIT del token.', 'resolvers.js:264'), ...rechazo('crearPrestamo')];
+        if (c.token === 'none') return [...s, enResolvers('PrestamoGraphqlController.crearPrestamo pide ContextoPeticion.nit() para sacar el NIT del token.', 'PrestamoGraphqlController.crearPrestamo'), ...rechazo('crearPrestamo')];
         const preC = c.down.has('pre'), actC = c.down.has('act'), invC = c.down.has('inv'), notC = c.down.has('not');
-        s.push(enResolvers('Mutation.crearPrestamo copia el input y le agrega el nitUniv del token. El cliente nunca manda el NIT.', 'resolvers.js:261', { code: `{ ...input, nitUniv: "${NIT}" }` }));
-        const post = { who: 'pre', code: `POST ${HOST.pre}/api/v1/activos/prestamos`, ref: 'http.js:22' };
+        s.push(enResolvers('PrestamosClient.crear copia el input y le agrega el nitUniv del token. El cliente nunca manda el NIT.', 'PrestamosClient.crear', { code: `cuerpo = new LinkedHashMap<>(input);\ncuerpo.put("nitUniv", "${NIT}");` }));
+        const post = { who: 'pre', code: `POST ${HOST.pre}/api/v1/activos/prestamos`, ref: 'MicroservicioRestClient.enviar' };
         const irAPre = () => fly(['e-res-http', 'r-http', 'e-http-pre'], { tag: 'POST', who: 'pre' });
         const volverDePre = (tag, kind, who) => fly([['e-http-pre', true], ['r-http', true], ['e-res-http', true]], { tag, who, kind });
         if (preC) {
-          s.push({ ...post, t: 'http.js manda el POST, pero préstamos no contesta.', pill: '✕', act: async () => { await irAPre(); await hold('n-pre', 450, 'hit'); await volverDePre('✕', 'err', 'err'); } });
-          s.push({ who: 'res', t: 'http.js lo convierte en SERVICE_UNAVAILABLE. crearPrestamo es Prestamo! (no admite null), así que data queda en null. No se creó nada.', ref: 'http.js:33', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push({ ...post, t: 'MicroservicioRestClient manda el POST, pero préstamos no contesta.', pill: '✕', act: async () => { await irAPre(); await hold('n-pre', 450, 'hit'); await volverDePre('✕', 'err', 'err'); } });
+          s.push({ who: 'res', t: 'MicroservicioRestClient lo convierte en GatewayException SERVICE_UNAVAILABLE. crearPrestamo es Prestamo! (no admite null), así que data queda en null. No se creó nada.', ref: 'GatewayException.noDisponible', pill: 'error', act: () => hold('n-res', 800, 'hit') });
           s.push(respuesta({ errors: [errSvc('prestamos', ['crearPrestamo'])], data: null }));
           return s;
         }
         if (c.token === 'lector') {
           s.push({ ...post, t: 'Préstamos revisa el rol antes de nada: todo lo que no es GET exige un rol de ETER_ROLES_ESCRITURA (ADMIN). Responde 403.', pill: '403', ref: 'SecurityConfig.java:58', act: async () => { await irAPre(); await hold('n-pre', 650, 'hit'); await volverDePre('403', 'err', 'err'); } });
-          s.push({ who: 'http', t: 'http.js lee el problem+json y traduce el 403 a FORBIDDEN, con el mensaje que mandó el servicio.', ref: 'http.js:43', pill: 'error', act: () => hold('n-http', 700, 'hit') });
-          s.push(respuesta({ errors: [{ message: 'Su rol no tiene permiso para realizar esta operación.', locations: LOC, path: ['crearPrestamo'], extensions: { code: 'FORBIDDEN', servicio: 'prestamos', status: 403 } }], data: null }));
+          s.push({ who: 'http', t: 'MicroservicioRestClient lee el problem+json y GatewayException traduce el 403 a FORBIDDEN, con el mensaje que mandó el servicio.', ref: 'GatewayException.desdeRespuesta', pill: 'error', act: () => hold('n-http', 700, 'hit') });
+          s.push(respuesta({ errors: [{ message: 'Su rol no tiene permiso para realizar esta operación.', locations: LOC, path: ['crearPrestamo'], extensions: { code: 'FORBIDDEN', servicio: 'prestamos', status: 403, classification: 'DataFetchingException' } }], data: null }));
           return s;
         }
-        s.push({ ...post, t: 'http.js manda el POST a préstamos con el mismo Authorization. El rol ADMIN pasa la regla de escritura.', act: irAPre });
+        s.push({ ...post, t: 'MicroservicioRestClient manda el POST a préstamos con el mismo Authorization. El rol ADMIN pasa la regla de escritura.', act: irAPre });
         s.push({
           who: 'pre', t: 'Antes de guardar, préstamos pregunta a activos si la placa existe, reenviando el mismo JWT.',
           code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0002`, pill: actC ? '✕' : '200', ref: 'ActivoRestClient.java:42',
@@ -893,12 +893,12 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
           },
         });
         if (actC) {
-          s.push({ who: 'pre', t: 'Sin activos no se puede saber si la placa existe: préstamos responde 503 y no guarda nada. http.js lo convierte en SERVICE_UNAVAILABLE.', ref: 'ActivoRestClient.java:53', pill: '503', act: async () => { await hold('n-pre', 500, 'hit'); await volverDePre('503', 'err', 'err'); } });
-          s.push(respuesta({ errors: [{ message: 'No fue posible verificar el activo porque el servicio de activos no está disponible. Intente de nuevo en unos minutos.', locations: LOC, path: ['crearPrestamo'], extensions: { code: 'SERVICE_UNAVAILABLE', servicio: 'prestamos', status: 503 } }], data: null }));
+          s.push({ who: 'pre', t: 'Sin activos no se puede saber si la placa existe: préstamos responde 503 y no guarda nada. GatewayException lo traduce a SERVICE_UNAVAILABLE.', ref: 'ActivoRestClient.java:53', pill: '503', act: async () => { await hold('n-pre', 500, 'hit'); await volverDePre('503', 'err', 'err'); } });
+          s.push(respuesta({ errors: [{ message: 'No fue posible verificar el activo porque el servicio de activos no está disponible. Intente de nuevo en unos minutos.', locations: LOC, path: ['crearPrestamo'], extensions: { code: 'SERVICE_UNAVAILABLE', servicio: 'prestamos', status: 503, classification: 'DataFetchingException' } }], data: null }));
           return s;
         }
         s.push({ who: 'pre', t: 'Préstamos guarda el préstamo y la fila outbox_event (PRESTAMO_CREADO) en la misma transacción, y responde 201. Todavía no toca Kafka.', ref: 'EVENTOS_KAFKA.md §7', pill: '201', act: async () => { await Promise.all([hold('n-pre', 900), hold('chip-pre-outbox', 900)]); await volverDePre('201', 'res', 'pre'); } });
-        s.push({ who: 'act', t: 'La mutation pidió activo { descripcion }, así que Prestamo.activo hace una llamada más a activos. La consulta que hizo préstamos no sirve aquí: fue de servicio a servicio, fuera del caché del gateway.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0002`, pill: '200', ref: 'resolvers.js:321', act: () => rest('act') });
+        s.push({ who: 'act', t: 'La mutation pidió activo { descripcion }, así que Prestamo.activo hace una llamada más a activos. La consulta que hizo préstamos no sirve aquí: fue de servicio a servicio, fuera del caché del gateway.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0002`, pill: '200', ref: 'PrestamoGraphqlController.activo', act: () => rest('act') });
         s.push(respuesta({ data: { crearPrestamo: { idPrestamo: 'e8b54a71-3c0d-4f2a-b6e9-58d1f7a2c043', estado: 'VIGENTE', activo: { descripcion: 'Videobeam Epson PowerLite E20' } } } }, 200,
           'El frontend ya tiene su respuesta. Lo que sigue pasa después y nadie lo espera.'));
         s.push({ sep: 'Después de responder · asincrónico' });
@@ -909,7 +909,7 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
         if (!notC) {
           s.push({
             who: 'res', t: 'Si el frontend tiene abierta la suscripción notificacionRecibida, en la siguiente vuelta (5 s como máximo) el gateway ve la notificación nueva y la empuja por el WebSocket.',
-            code: `GET ${HOST.not}/api/v1/notificaciones?page=0&size=50&soloNoLeidas=true`, pill: 'WS', ref: 'resolvers.js:95',
+            code: `GET ${HOST.not}/api/v1/notificaciones?page=0&size=50&soloNoLeidas=true`, pill: 'WS', ref: 'NotificacionGraphqlController.notificacionRecibida',
             act: async () => {
               await rest('not');
               await fly(['e-res-srv', 'r-srv-up', ['e-fe-srv', true]], { tag: 'WS', who: 'srv', kind: 'ws' });
@@ -927,23 +927,23 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
       op: 'mutation Baja {\n  darDeBajaActivo(placaInventario: "AF-2026-0007") {\n    placaInventario\n    estado\n  }\n}',
       plan(c) {
         const s = entrada(c);
-        if (c.token === 'none') return [...s, enResolvers('Mutation.darDeBajaActivo llama a resolverNit para sacar el NIT del token.', 'resolvers.js:236'), ...rechazo('darDeBajaActivo')];
+        if (c.token === 'none') return [...s, enResolvers('ActivoGraphqlController.darDeBajaActivo pide ContextoPeticion.nit() para sacar el NIT del token.', 'ActivoGraphqlController.darDeBajaActivo'), ...rechazo('darDeBajaActivo')];
         const actC = c.down.has('act'), invC = c.down.has('inv');
-        s.push(enResolvers('Mutation.darDeBajaActivo arma la ruta con el nitUniv del token.', 'resolvers.js:235'));
-        const del = { who: 'act', code: `DELETE ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0007`, ref: 'resolvers.js:237' };
+        s.push(enResolvers('ActivosClient.darDeBaja arma la ruta con el nitUniv del token.', 'ActivosClient.darDeBaja'));
+        const del = { who: 'act', code: `DELETE ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0007`, ref: 'ActivosClient.darDeBaja' };
         if (actC) {
-          s.push({ ...del, t: 'http.js manda el DELETE, pero activos no contesta.', pill: '✕', act: () => rest('act', { metodo: 'DELETE', caido: true }) });
-          s.push({ who: 'res', t: 'SERVICE_UNAVAILABLE: no hubo baja y data queda en null.', ref: 'http.js:33', pill: 'error', act: () => hold('n-res', 800, 'hit') });
+          s.push({ ...del, t: 'MicroservicioRestClient manda el DELETE, pero activos no contesta.', pill: '✕', act: () => rest('act', { metodo: 'DELETE', caido: true }) });
+          s.push({ who: 'res', t: 'SERVICE_UNAVAILABLE: no hubo baja y data queda en null.', ref: 'GatewayException.noDisponible', pill: 'error', act: () => hold('n-res', 800, 'hit') });
           s.push(respuesta({ errors: [errSvc('activos', ['darDeBajaActivo'])], data: null }));
           return s;
         }
         if (c.token === 'lector') {
-          s.push({ ...del, t: 'Activos revisa el rol: DELETE exige ADMIN. Responde 403 y http.js lo traduce a FORBIDDEN.', pill: '403', ref: 'SecurityConfig.java:58', act: () => rest('act', { metodo: 'DELETE', status: 403, proceso: () => hold('n-act', 650, 'hit') }) });
-          s.push(respuesta({ errors: [{ message: 'Su rol no tiene permiso para realizar esta operación.', locations: LOC, path: ['darDeBajaActivo'], extensions: { code: 'FORBIDDEN', servicio: 'activos', status: 403 } }], data: null }));
+          s.push({ ...del, t: 'Activos revisa el rol: DELETE exige ADMIN. Responde 403 y GatewayException lo traduce a FORBIDDEN.', pill: '403', ref: 'SecurityConfig.java:58', act: () => rest('act', { metodo: 'DELETE', status: 403, proceso: () => hold('n-act', 650, 'hit') }) });
+          s.push(respuesta({ errors: [{ message: 'Su rol no tiene permiso para realizar esta operación.', locations: LOC, path: ['darDeBajaActivo'], extensions: { code: 'FORBIDDEN', servicio: 'activos', status: 403, classification: 'DataFetchingException' } }], data: null }));
           return s;
         }
         s.push({ ...del, t: 'Activos hace la baja lógica y, en la misma transacción, guarda ACTIVO_DADO_DE_BAJA en su outbox. Responde 204, sin cuerpo.', pill: '204', act: () => rest('act', { metodo: 'DELETE', status: 204, proceso: () => Promise.all([hold('n-act', 900), hold('chip-act-outbox', 900)]) }) });
-        s.push({ who: 'res', t: 'invalidarActivos borra del caché las claves activo… y obtenerActivo vuelve a pedir el activo para devolverlo ya en BAJA.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0007`, pill: '200', ref: 'resolvers.js:242', act: () => rest('act') });
+        s.push({ who: 'res', t: 'ContextoPeticion.invalidar("activo") borra del caché las claves activo… y ActivosClient.obtener vuelve a pedir el activo para devolverlo ya en BAJA.', code: `GET ${HOST.act}/api/v1/activos/activos-fijos/${NIT}/AF-2026-0007`, pill: '200', ref: 'ActivosClient.darDeBaja', act: () => rest('act') });
         s.push(respuesta({ data: { darDeBajaActivo: { placaInventario: 'AF-2026-0007', estado: 'BAJA' } } }));
         s.push({ sep: 'Después de responder · asincrónico' });
         s.push({ who: 'act', t: 'OutboxPublisher de activos publica ACTIVO_DADO_DE_BAJA en eter.activos.eventos.v1, con key 900123456-1:AF-2026-0007.', pill: 'evt', ref: 'EVENTOS_KAFKA.md §6', act: async () => { await hold('chip-act-outbox', 600); await fly(['e-act-ka'], { tag: 'evt', who: 'act', kind: 'evt' }); } });
@@ -960,26 +960,25 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
       plan(c) {
         const s = entrada(c, true);
         if (c.token === 'none') {
-          s.push(enResolvers('subscribe llama a token(ctx) y exigirUsuario lanza UNAUTHENTICATED antes de empezar a vigilar.', 'resolvers.js:294', { pill: 'error' }));
+          s.push(enResolvers('notificacionRecibida pide ContextoPeticion.token() y usuario() lanza UNAUTHENTICATED antes de crear el Flux de sondeo.', 'NotificacionGraphqlController.notificacionRecibida', { pill: 'error' }));
           s.push({
-            who: 'fe', t: 'graphql-ws manda el error en un mensaje next y cierra la suscripción con complete.', pill: 'WS', ref: 'server.js:32',
+            who: 'fe', t: 'Spring for GraphQL manda un único mensaje error con la lista de errores. En graphql-transport-ws, error ya termina la operación: no hace falta complete.', pill: 'WS', ref: 'GatewaySubscriptionExceptionResolver',
             act: async () => {
               await fly(['e-res-srv', 'r-srv-up', ['e-fe-srv', true]], { tag: 'error', who: 'err', kind: 'err' });
-              mostrar({ id: '1', type: 'next', payload: { errors: [{ message: 'Token ausente o invalido.', locations: LOC, path: ['notificacionRecibida'], extensions: { code: 'UNAUTHENTICATED' } }] } }, { pill: 'WS', txt: 'mensaje next con errors' }, true);
-              mostrar({ id: '1', type: 'complete' }, { pill: 'WS', txt: 'fin de la suscripción' });
+              mostrar({ id: '1', type: 'error', payload: [{ message: 'Token ausente o invalido.', locations: [], extensions: { code: 'UNAUTHENTICATED', classification: 'DataFetchingException' } }] }, { pill: 'WS', txt: 'mensaje error: fin de la suscripción' }, true);
             },
           });
           return s;
         }
         const notC = c.down.has('not'), invC = c.down.has('inv');
         const sondeo = `GET ${HOST.not}/api/v1/notificaciones?page=0&size=50&soloNoLeidas=true`;
-        s.push(enResolvers('subscribe crea vigilarNotificaciones(jwt): un iterador propio que pregunta a notificaciones cada 5 s (ETER_POLL_NOTIFICACIONES_MS).', 'resolvers.js:82'));
+        s.push(enResolvers('notificacionRecibida devuelve un Flux: Mono.fromCallable consulta la bandeja y repeatWhen repite la consulta cada 5 s (eter.gateway.poll-notificaciones-ms).', 'NotificacionGraphqlController.notificacionRecibida'));
         if (notC) {
-          s.push({ who: 'not', t: 'Primera vuelta: notificaciones no contesta. sondear ignora el error y programa otra vuelta; solo cierra la suscripción si el error es UNAUTHENTICATED o FORBIDDEN.', code: sondeo, pill: '✕', ref: 'resolvers.js:106', act: () => rest('not', { caido: true }) });
-          s.push({ who: 'res', t: '5 s después, otra vuelta. Sigue sin respuesta.', code: sondeo, pill: '✕', ref: 'resolvers.js:113', act: async () => { await sleep(600); await rest('not', { caido: true }); } });
+          s.push({ who: 'not', t: 'Primera vuelta: notificaciones no contesta. onErrorResume se salta ese error y repeatWhen programa otra vuelta; solo se cierra la suscripción si el error es UNAUTHENTICATED o FORBIDDEN.', code: sondeo, pill: '✕', ref: 'NotificacionGraphqlController.esDeSesion', act: () => rest('not', { caido: true }) });
+          s.push({ who: 'res', t: '5 s después, otra vuelta. Sigue sin respuesta.', code: sondeo, pill: '✕', ref: 'repeatWhen · delayElements', act: async () => { await sleep(600); await rest('not', { caido: true }); } });
           s.push({ who: 'fe', t: 'El frontend no recibe nada ni ve un error: la suscripción sigue viva y reintenta cada 5 s hasta que notificaciones vuelva.', act: () => hold('n-fe', 700) });
         } else {
-          s.push({ who: 'not', t: 'Primera vuelta: llegan 4 no leídas. Solo se guardan en vistas como línea base; no se empujan, porque esas ya las muestra la query.', code: sondeo, pill: '200', ref: 'resolvers.js:102', act: () => rest('not') });
+          s.push({ who: 'not', t: 'Primera vuelta: llegan 4 no leídas. Solo se guardan en vistas como línea base; no se empujan, porque esas ya las muestra la query.', code: sondeo, pill: '200', ref: 'NotificacionGraphqlController.nuevas', act: () => rest('not') });
           s.push({ who: 'pre', t: 'Mientras tanto, el vigía de préstamos (cada 30 s en docker compose) encuentra vencido el préstamo de AF-2026-0004 y publica PRESTAMO_VENCIDO por el outbox.', pill: 'evt', ref: 'EVENTOS_KAFKA.md §5', act: async () => { await hold('n-pre', 700); await fly(['e-pre-kp'], { tag: 'evt', who: 'pre', kind: 'evt' }); } });
           s.push({
             who: 'kafka', t: 'Notificaciones crea «Préstamo vencido». Inventario también recibe el evento, pero lo ignora: un vencimiento no mueve el kardex.' + (invC ? ' Como inventario está caído, su copia espera en el log.' : ''),
@@ -989,9 +988,9 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
               await Promise.all([hold('n-not', 800), hold('chip-not-redis', 800), invC ? null : hold('n-inv', 500)]);
             },
           });
-          s.push({ who: 'not', t: 'Siguiente vuelta: ahora hay 5 no leídas y una no está en vistas. Va a la cola del iterador.', code: sondeo, pill: '200', ref: 'resolvers.js:99', act: () => rest('not') });
+          s.push({ who: 'not', t: 'Siguiente vuelta: ahora hay 5 no leídas y una no está en vistas. nuevas() la devuelve y concatMapIterable la emite en el Flux.', code: sondeo, pill: '200', ref: 'NotificacionGraphqlController.nuevas', act: () => rest('not') });
           s.push({
-            who: 'srv', t: 'next() saca la nueva de la cola y graphql-ws la manda por el WebSocket abierto.', pill: 'WS', ref: 'resolvers.js:127',
+            who: 'srv', t: 'Spring for GraphQL toma ese elemento del Flux y lo manda como mensaje next por el WebSocket abierto.', pill: 'WS', ref: 'Spring for GraphQL · WebSocket',
             act: async () => {
               await fly(['e-res-srv', 'r-srv-up', ['e-fe-srv', true]], { tag: 'WS', who: 'srv', kind: 'ws' });
               mostrar(wsNext(NOTI_VENC), { pill: 'WS', txt: 'mensaje next de la suscripción' });
@@ -1000,7 +999,7 @@ h1 { margin: 0; font: 700 clamp(28px, 3.6vw, 42px)/1.05 var(--f-display); letter
           });
         }
         s.push({
-          who: 'fe', t: 'Cuando el frontend cierra la suscripción, graphql-ws llama return(): cerrado = true y clearTimeout. El sondeo se detiene aunque esté a mitad de una espera.', pill: 'WS', ref: 'resolvers.js:137',
+          who: 'fe', t: 'Cuando el frontend manda complete (o cierra el WebSocket), Spring cancela la suscripción al Flux: repeatWhen deja de programar vueltas y el sondeo se detiene aunque esté a mitad de una espera.', pill: 'WS', ref: 'NotificacionGraphqlController.notificacionRecibida',
           act: async () => { await fly(['e-fe-srv'], { tag: 'complete', who: 'fe' }); await Promise.all([hold('n-srv', 600), hold('n-res', 600)]); },
         });
         return s;
